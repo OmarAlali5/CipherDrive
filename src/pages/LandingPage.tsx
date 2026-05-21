@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { motion, useMotionValue, useSpring } from 'framer-motion'
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton'
 import { Dashboard } from '@/components/Dashboard'
-import { HeroCanvasSequence } from '@/components/ui/HeroCanvasSequence'
+import { InteractiveHero } from '@/components/hero/InteractiveHero'
+import { CipherRevealText } from '@/components/ui/CipherRevealText'
 import { useAuthStore } from '@/store/authStore'
 import {
   Lock,
   ShieldCheck,
-  Terminal,
   Cloud,
   Zap,
   ChevronRight,
@@ -33,11 +34,17 @@ interface FeatureCardProps {
 }
 function FeatureCard({ icon, accent, glowColor, title, body }: FeatureCardProps) {
   const [hovered, setHovered] = useState(false)
+  const variants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  }
+
   return (
-    <div
+    <motion.div
+      variants={variants}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="group relative rounded-xl border border-slate-800 bg-slate-900/60 p-7 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:bg-slate-900/90"
+      className="group relative rounded-2xl border border-slate-800 bg-slate-900/40 p-7 backdrop-blur-sm transition-all duration-300 hover:bg-slate-800/50 hover:border-slate-700"
       style={{
         boxShadow: hovered ? `0 0 40px -10px ${glowColor}` : 'none',
         transition: 'box-shadow 0.4s ease, border-color 0.3s ease, background 0.3s ease',
@@ -59,10 +66,10 @@ function FeatureCard({ icon, accent, glowColor, title, body }: FeatureCardProps)
       </div>
 
       <h3 className="mb-2 font-mono text-[15px] font-semibold tracking-tight text-white">
-        {title}
+        <CipherRevealText text={title} delay={200} />
       </h3>
       <p className="text-sm leading-relaxed text-slate-400">{body}</p>
-    </div>
+    </motion.div>
   )
 }
 
@@ -102,6 +109,28 @@ function Step({ number, title, body, active }: StepProps) {
 export const LandingPage = () => {
   const { isAuthenticated } = useAuthStore()
 
+  // Global mouse tracking
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  
+  const springConfig = { damping: 25, stiffness: 200 }
+  const spotlightX = useSpring(mouseX, springConfig)
+  const spotlightY = useSpring(mouseY, springConfig)
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX)
+      mouseY.set(e.clientY)
+    }
+    
+    // Set initial position to center
+    mouseX.set(window.innerWidth / 2)
+    mouseY.set(window.innerHeight / 2)
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [mouseX, mouseY])
+
   if (isAuthenticated) return <Dashboard />
 
   return (
@@ -135,7 +164,20 @@ export const LandingPage = () => {
         .anim-delay-5 { animation-delay: 0.65s; }
       `}</style>
 
-      <div className="relative min-h-screen bg-slate-950 text-slate-50 overflow-x-hidden selection:bg-emerald-500/30">
+      <div className="min-h-screen bg-[#020617] text-white relative overflow-hidden selection:bg-emerald-500/30">
+
+        {/* Global Spotlight Effect */}
+        <motion.div
+          className="pointer-events-none fixed w-96 h-96 rounded-full bg-emerald-500/15 blur-[100px] z-0"
+          style={{
+            x: spotlightX,
+            y: spotlightY,
+            translateX: '-50%',
+            translateY: '-50%',
+            top: 0,
+            left: 0
+          }}
+        />
 
         {/* Subtle background grid — only visible on content sections, NOT the canvas area */}
         <div
@@ -151,7 +193,7 @@ export const LandingPage = () => {
         />
 
         {/* ── Navbar ── */}
-        <header className="relative z-50 border-b border-slate-800/60 backdrop-blur-md bg-slate-950/80 sticky top-0">
+        <header className="relative z-50 border-b border-slate-800/60 backdrop-blur-md bg-[#020617]/80 sticky top-0">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             {/* Logo */}
             <div className="flex items-center gap-3">
@@ -174,73 +216,16 @@ export const LandingPage = () => {
         </header>
 
         {/* ─────────────────────────────────────────
-            SECTION 1: The Scroll-Stopper Animation
+            HERO SECTION
         ───────────────────────────────────────── */}
-        <section className="relative z-10">
-          <HeroCanvasSequence />
-        </section>
-
-        {/* ─────────────────────────────────────────
-            SECTION 2: Hero Content (Post-Scroll)
-            Seamless transition from canvas black → page bg
-        ───────────────────────────────────────── */}
-        <section className="relative z-20 bg-gradient-to-b from-black via-slate-950 to-slate-950">
-          <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
-            {/* Subtle radial glow behind text */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full opacity-25"
-              style={{
-                background:
-                  'radial-gradient(ellipse at center, rgba(16,185,129,0.15) 0%, transparent 70%)',
-              }}
-            />
-
-            <div className="max-w-4xl mx-auto flex flex-col items-center relative z-10">
-              <div className="anim-fade-up">
-                <span className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/30 bg-emerald-500/5 px-3 py-1 text-[11px] font-mono font-medium uppercase tracking-[0.15em] text-emerald-400 backdrop-blur-sm">
-                  <ShieldCheck strokeWidth={1.5} className="h-3.5 w-3.5" />
-                  Enterprise-grade AES-256 cryptography
-                </span>
-              </div>
-
-              <h1 className="anim-fade-up anim-delay-1 mt-8 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white">
-                Absolute Privacy, <br className="hidden sm:block" />
-                <span
-                  className="text-transparent bg-clip-text"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(90deg, #34d399 0%, #22d3ee 50%, #38bdf8 100%)',
-                  }}
-                >
-                  Inside Your Favorite Cloud.
-                </span>
-              </h1>
-
-              <p className="anim-fade-up anim-delay-2 mt-6 max-w-2xl text-base sm:text-lg text-slate-400 leading-relaxed">
-                Locally encrypt your sensitive files using advanced AES-256 cryptography before
-                uploading them to Google Drive. No one — not us, not Google, not attackers — can access
-                your data.{' '}
-                <span className="text-slate-200 font-medium">You hold the only key.</span>
-              </p>
-
-              <div className="anim-fade-up anim-delay-3 mt-8 flex flex-col items-center gap-3">
-                <GoogleLoginButton />
-                <p className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
-                  <Terminal strokeWidth={1.5} className="h-3.5 w-3.5" />
-                  No additional account required · Use your Google account
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <InteractiveHero />
 
         {/* ─────────────────────────────────────────
             SECTION 3: Features Grid
         ───────────────────────────────────────── */}
         <section
           id="features"
-          className="relative z-20 py-24 bg-slate-950"
+          className="relative z-20 py-24"
         >
           {/* Section separator glow */}
           <div
@@ -266,7 +251,16 @@ export const LandingPage = () => {
               </p>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 max-w-5xl mx-auto">
+            <motion.div 
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.2 } }
+              }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 max-w-5xl mx-auto"
+            >
               <FeatureCard
                 icon={<Lock strokeWidth={1.5} className="h-6 w-6 text-emerald-400" />}
                 accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
@@ -288,7 +282,7 @@ export const LandingPage = () => {
                 title="Enterprise-Grade AES-GCM"
                 body="Military-standard authenticated encryption with integrity verification. Tamper-proof by design."
               />
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -297,7 +291,7 @@ export const LandingPage = () => {
         ───────────────────────────────────────── */}
         <section
           id="how-it-works"
-          className="relative z-20 py-24 border-t border-slate-800/60 bg-slate-950"
+          className="relative z-20 py-24 border-t border-slate-800/60"
         >
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
@@ -335,7 +329,7 @@ export const LandingPage = () => {
         </section>
 
         {/* ── Footer / Trust ── */}
-        <footer className="relative z-20 mt-8 border-t border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
+        <footer className="relative z-20 mt-8 border-t border-slate-800/60 bg-transparent backdrop-blur-md">
           <div className="container mx-auto px-4 py-12">
             {/* Critical warning */}
             <div className="mb-10 mx-auto max-w-2xl rounded-xl border border-rose-500/30 bg-rose-500/5 p-5 backdrop-blur-sm">
