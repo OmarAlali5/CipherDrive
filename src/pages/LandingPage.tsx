@@ -1,0 +1,378 @@
+import { useState } from 'react'
+import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton'
+import { Dashboard } from '@/components/Dashboard'
+import { HeroCanvasSequence } from '@/components/ui/HeroCanvasSequence'
+import { useAuthStore } from '@/store/authStore'
+import {
+  Lock,
+  ShieldCheck,
+  Terminal,
+  Cloud,
+  Zap,
+  ChevronRight,
+} from 'lucide-react'
+
+/* ─────────────────────────────────────────────
+   Sub-components
+───────────────────────────────────────────── */
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/30 bg-emerald-500/5 px-3 py-1 text-[11px] font-mono font-medium uppercase tracking-[0.15em] text-emerald-400 backdrop-blur-sm">
+      {children}
+    </span>
+  )
+}
+
+interface FeatureCardProps {
+  icon: React.ReactNode
+  accent: string
+  glowColor: string
+  title: string
+  body: string
+}
+function FeatureCard({ icon, accent, glowColor, title, body }: FeatureCardProps) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="group relative rounded-xl border border-slate-800 bg-slate-900/60 p-7 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:bg-slate-900/90"
+      style={{
+        boxShadow: hovered ? `0 0 40px -10px ${glowColor}` : 'none',
+        transition: 'box-shadow 0.4s ease, border-color 0.3s ease, background 0.3s ease',
+      }}
+    >
+      {/* Top accent bar */}
+      <div
+        className={`absolute top-0 left-6 right-6 h-px ${accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+      />
+
+      <div
+        className="mb-5 inline-flex rounded-lg border p-3"
+        style={{
+          borderColor: `${glowColor}33`,
+          background: `${glowColor}0d`,
+        }}
+      >
+        {icon}
+      </div>
+
+      <h3 className="mb-2 font-mono text-[15px] font-semibold tracking-tight text-white">
+        {title}
+      </h3>
+      <p className="text-sm leading-relaxed text-slate-400">{body}</p>
+    </div>
+  )
+}
+
+interface StepProps {
+  number: string
+  title: string
+  body: string
+  active?: boolean
+}
+function Step({ number, title, body, active }: StepProps) {
+  return (
+    <div className="flex flex-col items-center text-center flex-1 px-4">
+      <div
+        className={`relative mb-5 flex h-14 w-14 items-center justify-center rounded-full border-2 font-mono text-lg font-bold transition-all duration-300
+          ${
+            active
+              ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
+              : 'border-slate-700 bg-slate-900 text-slate-400'
+          }`}
+      >
+        {number}
+        {active && (
+          <span className="absolute inset-0 rounded-full border-2 border-emerald-400/30 animate-ping" />
+        )}
+      </div>
+      <h3 className="mb-1.5 font-mono text-sm font-semibold uppercase tracking-widest text-white">
+        {title}
+      </h3>
+      <p className="text-sm text-slate-400 leading-relaxed max-w-[200px]">{body}</p>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────
+   Main Landing Page
+───────────────────────────────────────────── */
+export const LandingPage = () => {
+  const { isAuthenticated } = useAuthStore()
+
+  if (isAuthenticated) return <Dashboard />
+
+  return (
+    <>
+      {/* Global font injection */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap');
+
+        * { font-family: 'Syne', sans-serif; }
+        .font-mono { font-family: 'IBM Plex Mono', monospace !important; }
+
+        @keyframes scanline {
+          0%   { top: -2px; opacity: 0; }
+          5%   { opacity: 1; }
+          95%  { opacity: 0.6; }
+          100% { top: 100%; opacity: 0; }
+        }
+
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .anim-fade-up {
+          animation: fade-up 0.7s cubic-bezier(.22,1,.36,1) both;
+        }
+        .anim-delay-1 { animation-delay: 0.1s; }
+        .anim-delay-2 { animation-delay: 0.2s; }
+        .anim-delay-3 { animation-delay: 0.35s; }
+        .anim-delay-4 { animation-delay: 0.5s; }
+        .anim-delay-5 { animation-delay: 0.65s; }
+      `}</style>
+
+      <div className="relative min-h-screen bg-slate-950 text-slate-50 overflow-x-hidden selection:bg-emerald-500/30">
+
+        {/* Subtle background grid — only visible on content sections, NOT the canvas area */}
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(16,185,129,0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(16,185,129,0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '48px 48px',
+          }}
+        />
+
+        {/* ── Navbar ── */}
+        <header className="relative z-50 border-b border-slate-800/60 backdrop-blur-md bg-slate-950/80 sticky top-0">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="CipherDrive Logo" className="h-8 w-auto object-contain" />
+              <span className="font-mono text-base font-semibold tracking-tight text-white">
+                Cipher<span className="text-emerald-400">Drive</span>
+              </span>
+            </div>
+
+            {/* Nav links (desktop) */}
+            <nav className="hidden md:flex items-center gap-6 text-sm text-slate-400">
+              <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
+            </nav>
+
+            <div className="hidden sm:block">
+              <GoogleLoginButton />
+            </div>
+          </div>
+        </header>
+
+        {/* ─────────────────────────────────────────
+            SECTION 1: The Scroll-Stopper Animation
+        ───────────────────────────────────────── */}
+        <section className="relative z-10">
+          <HeroCanvasSequence />
+        </section>
+
+        {/* ─────────────────────────────────────────
+            SECTION 2: Hero Content (Post-Scroll)
+            Seamless transition from canvas black → page bg
+        ───────────────────────────────────────── */}
+        <section className="relative z-20 bg-gradient-to-b from-black via-slate-950 to-slate-950">
+          <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+            {/* Subtle radial glow behind text */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full opacity-25"
+              style={{
+                background:
+                  'radial-gradient(ellipse at center, rgba(16,185,129,0.15) 0%, transparent 70%)',
+              }}
+            />
+
+            <div className="max-w-4xl mx-auto flex flex-col items-center relative z-10">
+              <div className="anim-fade-up">
+                <span className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/30 bg-emerald-500/5 px-3 py-1 text-[11px] font-mono font-medium uppercase tracking-[0.15em] text-emerald-400 backdrop-blur-sm">
+                  <ShieldCheck strokeWidth={1.5} className="h-3.5 w-3.5" />
+                  Enterprise-grade AES-256 cryptography
+                </span>
+              </div>
+
+              <h1 className="anim-fade-up anim-delay-1 mt-8 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white">
+                Absolute Privacy, <br className="hidden sm:block" />
+                <span
+                  className="text-transparent bg-clip-text"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(90deg, #34d399 0%, #22d3ee 50%, #38bdf8 100%)',
+                  }}
+                >
+                  Inside Your Favorite Cloud.
+                </span>
+              </h1>
+
+              <p className="anim-fade-up anim-delay-2 mt-6 max-w-2xl text-base sm:text-lg text-slate-400 leading-relaxed">
+                Locally encrypt your sensitive files using advanced AES-256 cryptography before
+                uploading them to Google Drive. No one — not us, not Google, not attackers — can access
+                your data.{' '}
+                <span className="text-slate-200 font-medium">You hold the only key.</span>
+              </p>
+
+              <div className="anim-fade-up anim-delay-3 mt-8 flex flex-col items-center gap-3">
+                <GoogleLoginButton />
+                <p className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+                  <Terminal strokeWidth={1.5} className="h-3.5 w-3.5" />
+                  No additional account required · Use your Google account
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────
+            SECTION 3: Features Grid
+        ───────────────────────────────────────── */}
+        <section
+          id="features"
+          className="relative z-20 py-24 bg-slate-950"
+        >
+          {/* Section separator glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full opacity-15"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, rgba(16,185,129,0.2) 0%, transparent 70%)',
+            }}
+          />
+
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="mb-12 text-center">
+              <Tag>
+                <Zap strokeWidth={1.5} className="h-3.5 w-3.5" />
+                Core capabilities
+              </Tag>
+              <h2 className="mt-5 text-3xl font-bold text-white tracking-tight">
+                Why CipherDrive?
+              </h2>
+              <p className="mt-3 text-slate-400 text-sm max-w-md mx-auto">
+                Built from first principles around a single guarantee: your plaintext never leaves your device.
+              </p>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 max-w-5xl mx-auto">
+              <FeatureCard
+                icon={<Lock strokeWidth={1.5} className="h-6 w-6 text-emerald-400" />}
+                accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
+                glowColor="rgba(16,185,129,1)"
+                title="Zero-Knowledge Encryption"
+                body="Your encryption happens entirely in your browser. We never see, transmit, or store your passwords or unencrypted files."
+              />
+              <FeatureCard
+                icon={<Cloud strokeWidth={1.5} className="h-6 w-6 text-blue-400" />}
+                accent="bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"
+                glowColor="rgba(59,130,246,1)"
+                title="Direct-to-Google Drive"
+                body="No middleman servers. Your encrypted ciphertext goes straight to your personal Google Drive, giving you full ownership and control."
+              />
+              <FeatureCard
+                icon={<ShieldCheck strokeWidth={1.5} className="h-6 w-6 text-violet-400" />}
+                accent="bg-gradient-to-r from-transparent via-violet-500/50 to-transparent"
+                glowColor="rgba(139,92,246,1)"
+                title="Enterprise-Grade AES-GCM"
+                body="Military-standard authenticated encryption with integrity verification. Tamper-proof by design."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────
+            SECTION 4: How It Works
+        ───────────────────────────────────────── */}
+        <section
+          id="how-it-works"
+          className="relative z-20 py-24 border-t border-slate-800/60 bg-slate-950"
+        >
+          <div className="container mx-auto px-4">
+            <div className="mb-16 text-center">
+              <Tag>
+                <ChevronRight strokeWidth={1.5} className="h-3.5 w-3.5" />
+                Process
+              </Tag>
+              <h2 className="mt-5 text-3xl font-bold text-white tracking-tight">
+                How It Works
+              </h2>
+            </div>
+
+            <div className="relative flex flex-col md:flex-row items-start justify-center gap-10 md:gap-0 max-w-3xl mx-auto">
+              {/* Connector line (desktop) */}
+              <div className="hidden md:block absolute top-7 left-[calc(16.7%+28px)] right-[calc(16.7%+28px)] h-px bg-gradient-to-r from-slate-800 via-emerald-500/30 to-slate-800" />
+
+              <Step
+                number="01"
+                title="Connect"
+                body="Securely link your Google account to grant isolated access."
+              />
+              <Step
+                number="02"
+                title="Encrypt"
+                body="Select your file, set a strong password, and lock it locally."
+                active
+              />
+              <Step
+                number="03"
+                title="Sync"
+                body="Your encrypted data is automatically pushed to the cloud."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ── Footer / Trust ── */}
+        <footer className="relative z-20 mt-8 border-t border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
+          <div className="container mx-auto px-4 py-12">
+            {/* Critical warning */}
+            <div className="mb-10 mx-auto max-w-2xl rounded-xl border border-rose-500/30 bg-rose-500/5 p-5 backdrop-blur-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <span className="text-2xl shrink-0" aria-hidden>⚠️</span>
+                <div>
+                  <p className="font-mono text-xs font-semibold uppercase tracking-widest text-rose-400 mb-1">
+                    Critical Notice
+                  </p>
+                  <p className="text-sm text-rose-300/80 leading-relaxed">
+                    We do not offer password recovery. Because we never store your keys, losing your
+                    password means losing your files forever.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer bottom */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800/60 pt-8">
+              <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="CipherDrive Logo" className="h-6 w-auto opacity-75 hover:opacity-100 transition-opacity" />
+                <span className="font-mono text-sm font-semibold text-slate-400">
+                  Cipher<span className="text-emerald-500/80">Drive</span>
+                </span>
+              </div>
+              <p className="font-mono text-xs text-slate-600">
+                © 2026 CipherDrive. Open Source Privacy.
+              </p>
+              <div className="flex items-center gap-4 text-xs text-slate-600 font-mono">
+                <a href="#" className="hover:text-slate-400 transition-colors">GitHub</a>
+                <a href="#" className="hover:text-slate-400 transition-colors">Docs</a>
+                <a href="#" className="hover:text-slate-400 transition-colors">Privacy</a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </>
+  )
+}
