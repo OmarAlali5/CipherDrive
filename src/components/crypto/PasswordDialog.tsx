@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Lock, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react'
+import { Lock, Eye, EyeOff, Loader2, AlertTriangle, CheckCircle2, Circle } from 'lucide-react'
 
 interface PasswordDialogProps {
   open: boolean
@@ -22,6 +22,30 @@ interface PasswordDialogProps {
   onSubmit: (password: string) => void
   isLoading?: boolean
 }
+
+// Password strength criteria definitions
+const CRITERIA = [
+  {
+    id: 'length',
+    label: 'At least 8 characters',
+    regex: /.{8,}/,
+  },
+  {
+    id: 'uppercase',
+    label: 'At least one uppercase letter',
+    regex: /[A-Z]/,
+  },
+  {
+    id: 'number',
+    label: 'At least one number',
+    regex: /[0-9]/,
+  },
+  {
+    id: 'special',
+    label: 'At least one special character',
+    regex: /[!@#$%^&*(),.?":{}|<>]/,
+  },
+] as const
 
 export const PasswordDialog = ({
   open,
@@ -35,15 +59,30 @@ export const PasswordDialog = ({
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  // Derive which criteria pass in real-time
+  const criteriaStatus = useMemo(
+    () => CRITERIA.map((c) => ({ ...c, passed: c.regex.test(password) })),
+    [password],
+  )
+
+  const isPasswordValid = criteriaStatus.every((c) => c.passed)
+
   const handleSubmit = () => {
-    if (password.trim()) {
+    if (isPasswordValid && !isLoading) {
       onSubmit(password)
       setPassword('')
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!isLoading) {
+      onOpenChange(open)
+      if (!open) setPassword('')
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md border-(--border)/50 bg-(--background)/95 backdrop-blur-md shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5 text-xl tracking-tight">
@@ -56,7 +95,9 @@ export const PasswordDialog = ({
             {description}
           </DialogDescription>
         </DialogHeader>
+
         <div className="space-y-5 py-5">
+          {/* Critical warning */}
           <Alert variant="warning" className="bg-amber-500/10">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Critical Warning</AlertTitle>
@@ -65,11 +106,15 @@ export const PasswordDialog = ({
               forget it, your file CANNOT be recovered by anyone. Please store it securely.
             </AlertDescription>
           </Alert>
+
+          {/* Password input */}
           <div className="space-y-2.5">
-            <Label htmlFor="password" className="text-sm font-medium">Encryption Password</Label>
+            <Label htmlFor="encrypt-password" className="text-sm font-medium">
+              Encryption Password
+            </Label>
             <div className="relative group">
               <Input
-                id="password"
+                id="encrypt-password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your encryption password"
                 value={password}
@@ -77,7 +122,7 @@ export const PasswordDialog = ({
                 disabled={isLoading}
                 className="pr-10 h-11 bg-(--muted)/20 border-(--border)/50 focus-visible:ring-(--primary)/30 transition-all duration-200"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && password.trim() && !isLoading) {
+                  if (e.key === 'Enter' && isPasswordValid && !isLoading) {
                     handleSubmit()
                   }
                 }}
@@ -95,17 +140,50 @@ export const PasswordDialog = ({
               </button>
             </div>
           </div>
+
+          {/* Password strength checklist */}
+          <div className="rounded-lg border border-(--border)/40 bg-(--muted)/10 px-4 py-3 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-(--muted-foreground)/60 mb-1">
+              Password Requirements
+            </p>
+            {criteriaStatus.map((criterion) => (
+              <div
+                key={criterion.id}
+                className="flex items-center gap-2.5"
+              >
+                {criterion.passed ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 transition-colors duration-200" />
+                ) : (
+                  <Circle className="h-4 w-4 shrink-0 text-slate-500 transition-colors duration-200" />
+                )}
+                <span
+                  className={`text-sm transition-colors duration-200 ${
+                    criterion.passed
+                      ? 'text-emerald-400'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  {criterion.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
+
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             disabled={isLoading}
             className="border-(--border)/50 hover:bg-(--muted)/50"
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!password.trim() || isLoading} className="min-w-[140px] shadow-sm">
+          <Button
+            onClick={handleSubmit}
+            disabled={!isPasswordValid || isLoading}
+            className="min-w-[140px] shadow-sm"
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
