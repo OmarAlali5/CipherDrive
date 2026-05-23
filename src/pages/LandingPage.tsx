@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
-import { motion, useMotionValue, useSpring } from 'framer-motion'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton'
 import { Dashboard } from '@/components/Dashboard'
 import { InteractiveHero } from '@/components/hero/InteractiveHero'
+import { MatrixTrail } from '@/components/hero/MatrixTrail'
 import { CipherRevealText } from '@/components/ui/CipherRevealText'
 import { useAuthStore } from '@/store/authStore'
 import {
@@ -109,28 +110,7 @@ function Step({ number, title, body, active }: StepProps) {
 export const LandingPage = () => {
   const { isAuthenticated } = useAuthStore()
 
-  // Global mouse tracking
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-  
-  const springConfig = { damping: 25, stiffness: 200 }
-  const spotlightX = useSpring(mouseX, springConfig)
-  const spotlightY = useSpring(mouseY, springConfig)
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX)
-      mouseY.set(e.clientY)
-    }
-    
-    // Set initial position to center
-    mouseX.set(window.innerWidth / 2)
-    mouseY.set(window.innerHeight / 2)
-
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [mouseX, mouseY])
-
+ 
   if (isAuthenticated) return <Dashboard />
 
   return (
@@ -165,19 +145,10 @@ export const LandingPage = () => {
       `}</style>
 
       <div className="min-h-screen bg-[#020617] text-white relative overflow-hidden selection:bg-emerald-500/30">
+        
+        {/* Matrix Digital Trail */}
+        <MatrixTrail />
 
-        {/* Global Spotlight Effect */}
-        <motion.div
-          className="pointer-events-none fixed w-96 h-96 rounded-full bg-emerald-500/15 blur-[100px] z-0"
-          style={{
-            x: spotlightX,
-            y: spotlightY,
-            translateX: '-50%',
-            translateY: '-50%',
-            top: 0,
-            left: 0
-          }}
-        />
 
         {/* Subtle background grid — only visible on content sections, NOT the canvas area */}
         <div
