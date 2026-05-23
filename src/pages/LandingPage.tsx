@@ -110,7 +110,6 @@ function Step({ number, title, body, active }: StepProps) {
 export const LandingPage = () => {
   const { isAuthenticated } = useAuthStore()
 
- 
   if (isAuthenticated) return <Dashboard />
 
   return (
@@ -148,7 +147,6 @@ export const LandingPage = () => {
         
         {/* Matrix Digital Trail */}
         <MatrixTrail />
-
 
         {/* Subtle background grid — only visible on content sections, NOT the canvas area */}
         <div

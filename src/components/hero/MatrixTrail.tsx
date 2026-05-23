@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+
 interface Particle {
   id: number
   x: number
@@ -17,13 +18,13 @@ let nextId = 0
 export const MatrixTrail = () => {
   const [particles, setParticles] = useState<Particle[]>([])
   const lastSpawnRef = useRef(0)
-  
+
   /* ── Mouse move handler (throttled) ── */
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const now = Date.now()
     if (now - lastSpawnRef.current < SPAWN_THROTTLE_MS) return
     lastSpawnRef.current = now
-    
+
     const newParticle: Particle = {
       id: nextId++,
       x: e.clientX,
@@ -31,7 +32,7 @@ export const MatrixTrail = () => {
       char: Math.random() > 0.5 ? '1' : '0',
       createdAt: now,
     }
-    
+
     setParticles(prev => {
       const updated = [...prev, newParticle]
       // hard cap — drop oldest if we exceed max
@@ -40,13 +41,13 @@ export const MatrixTrail = () => {
         : updated
     })
   }, [])
-  
+
   /* ── Attach global mousemove listener ── */
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [handleMouseMove])
-  
+
   /* ── Periodic cleanup of expired particles ── */
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,7 +58,7 @@ export const MatrixTrail = () => {
     }, 500)
     return () => clearInterval(interval)
   }, [])
-  
+
   return (
     <div className="fixed inset-0 pointer-events-none z-0" aria-hidden>
       <AnimatePresence>

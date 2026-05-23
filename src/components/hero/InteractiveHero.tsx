@@ -3,14 +3,13 @@ import { motion } from 'framer-motion'
 import { ShieldCheck, Terminal } from 'lucide-react'
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton'
 import { CipherRevealText } from '@/components/ui/CipherRevealText'
-import { GlitchHoverText } from '@/components/ui/GlitchHoverText'
 import { MagneticWrapper } from '@/components/ui/MagneticWrapper'
 
 export const InteractiveHero = () => {
-
-    const cardRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [isHovering, setIsHovering] = useState(false)
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return
     const rect = cardRef.current.getBoundingClientRect()
@@ -19,27 +18,27 @@ export const InteractiveHero = () => {
       y: e.clientY - rect.top,
     })
   }
-  
+
   return (
     <div className="relative min-h-screen flex items-center justify-center pt-16 z-10">
       <div className="relative z-10 w-full max-w-4xl mx-auto px-4 flex flex-col items-center">
 
-          {/* ── Outer Wrapper (Magic Border Container) ── */}
-          <div
-            ref={cardRef}
-            onMouseMove={handleMouseMove}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            className="group relative w-full rounded-3xl overflow-hidden bg-slate-900/20"
-          >
-            {/* ── Glow Background (The Border) ── */}
-            <motion.div
-              className="absolute inset-0 z-0 transition-opacity duration-500"
-              animate={{ opacity: isHovering ? 1 : 0 }}
-              style={{
-                background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(16,185,129,0.5), transparent 40%)`,
-              }}
-            />
+        {/* ── Outer Wrapper (Magic Border Container) ── */}
+        <div
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+          className="group relative w-full rounded-3xl overflow-hidden bg-slate-900/20"
+        >
+          {/* ── Glow Background (The Border) ── */}
+          <motion.div
+            className="absolute inset-0 z-0 transition-opacity duration-500"
+            animate={{ opacity: isHovering ? 1 : 0 }}
+            style={{
+              background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(16,185,129,0.5), transparent 40%)`,
+            }}
+          />
 
           {/* Subtle ambient glow so the border is faintly visible even without hover */}
           <div
@@ -64,9 +63,9 @@ export const InteractiveHero = () => {
               </MagneticWrapper>
             </div>
 
- {/* Headline — glitch on hover */}
+            {/* Headline — static plain text */}
             <h1 className="anim-fade-up anim-delay-1 mt-8 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white">
-              <GlitchHoverText text="Absolute Privacy," />{' '}
+              Absolute Privacy,{' '}
               <br className="hidden sm:block" />
               <span
                 className="text-transparent bg-clip-text"
@@ -74,9 +73,10 @@ export const InteractiveHero = () => {
                   backgroundImage: 'linear-gradient(90deg, #34d399 0%, #22d3ee 50%, #38bdf8 100%)',
                 }}
               >
-                <GlitchHoverText text="Inside Your Favorite Cloud." />
+                Inside Your Favorite Cloud.
               </span>
             </h1>
+
             {/* Sub-headline */}
             <p className="anim-fade-up anim-delay-2 mt-6 max-w-2xl text-base sm:text-lg text-slate-400 leading-relaxed">
               <CipherRevealText
@@ -87,7 +87,7 @@ export const InteractiveHero = () => {
                 <CipherRevealText text="You hold the only key." delay={800} />
               </span>
             </p>
-            
+
             {/* CTA — magnetic pull */}
             <div className="anim-fade-up anim-delay-3 mt-8 flex flex-col items-center gap-3">
               <MagneticWrapper strength={14}>
@@ -100,7 +100,7 @@ export const InteractiveHero = () => {
             </div>
           </div>
         </div>
-        
+
       </div>
     </div>
   )
