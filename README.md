@@ -5,7 +5,7 @@
 
   ### *Don't trust us. Don't trust Google. Trust Math.*
 
-  A zero-knowledge, client-side encryption vault that turns your Google Drive into an impenetrable fortress — without ever touching a server.
+  A zero-knowledge, client-side encryption vault that turns your Google Drive into an impenetrable fortress, without ever touching a server.
 
   <br/>
 
@@ -30,15 +30,15 @@
 
 ## 🌐 Overview
 
-Every file you upload to Google Drive is readable by Google. Every photo, every document, every secret — sitting in plain text on someone else's computer.
+Every file you upload to Google Drive is readable by Google. Every photo, every document, every secret, sitting in plain text on someone else's computer.
 
 **CipherDrive changes that.**
 
-CipherDrive is a **true Zero-Knowledge** web application. Your files are encrypted entirely inside your browser using the native **Web Crypto API** before a single byte ever leaves your device. The encryption key is derived from a password that **only you know** — it's never transmitted, never stored, and never logged. Once encryption is complete, the key is discarded from RAM.
+CipherDrive is a **true Zero-Knowledge** web application. Your files are encrypted entirely inside your browser using the native **Web Crypto API** before a single byte ever leaves your device. The encryption key is derived from a password that **only you know**, it's never transmitted, never stored, and never logged. Once encryption is complete, the key is discarded from RAM.
 
 The result? Even if Google, a hacker, or a government agency gains full access to your Drive, they will find nothing but indecipherable noise.
 
-> **Zero-Knowledge means exactly that**: We can't read your files. Google can't read your files. *Nobody* can — except you.
+> **Zero-Knowledge means exactly that**: We can't read your files. Google can't read your files. *Nobody* can. EXCEPT YOU.
 
 <br/>
 
