@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Terminal } from 'lucide-react'
+import { ShieldCheck, Terminal } from '@phosphor-icons/react'
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton'
 import { CipherRevealText } from '@/components/ui/CipherRevealText'
 import { MagneticWrapper } from '@/components/ui/MagneticWrapper'
@@ -49,7 +49,7 @@ export const InteractiveHero = () => {
             }}
           />
 
-          {/* ── Inner Card (The Content) ── */}
+          {/* Inner Card (The Content) */}
           <div
             className="relative z-10 m-[1.5px] rounded-[calc(1.5rem-1.5px)] bg-[#020617]/95 backdrop-blur-2xl p-8 sm:p-12 flex flex-col items-center text-center"
           >
@@ -57,7 +57,7 @@ export const InteractiveHero = () => {
             <div className="anim-fade-up">
               <MagneticWrapper strength={8}>
                 <span className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/30 bg-emerald-500/5 px-3 py-1 text-[11px] font-mono font-medium uppercase tracking-[0.15em] text-emerald-400 backdrop-blur-sm">
-                  <ShieldCheck strokeWidth={1.5} className="h-3.5 w-3.5" />
+                  <ShieldCheck weight="duotone" className="h-3.5 w-3.5 text-emerald-500" />
                   Advanced AES-256 cryptography
                 </span>
               </MagneticWrapper>
@@ -94,7 +94,7 @@ export const InteractiveHero = () => {
                 <GoogleLoginButton />
               </MagneticWrapper>
               <p className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
-                <Terminal strokeWidth={1.5} className="h-3.5 w-3.5" />
+                <Terminal weight="duotone" className="h-3.5 w-3.5 text-emerald-500" />
                 No additional account required · Use your Google account
               </p>
             </div>
