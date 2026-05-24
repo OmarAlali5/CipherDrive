@@ -30,7 +30,7 @@ export const Dashboard = () => {
                   <span className="text-xs text-(--muted-foreground)">{userProfile.email}</span>
                 </div>
                 {userProfile.picture ? (
-                  <img src={userProfile.picture} alt={userProfile.name} className="h-8 w-8 rounded-full bg-(--muted)" />
+                  <img src={userProfile.picture} alt={userProfile.name} referrerPolicy="no-referrer" className="h-8 w-8 rounded-full bg-(--muted)" />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-(--primary)/20 flex items-center justify-center font-bold text-xs">
                     {userProfile.name.charAt(0)}
@@ -52,7 +52,7 @@ export const Dashboard = () => {
           {/* Temporary Welcome Header */}
           <div className="bg-(--card) border border-(--border) rounded-xl p-6 shadow-sm flex items-center gap-4">
              {userProfile?.picture && (
-               <img src={userProfile.picture} alt={userProfile.name} className="h-12 w-12 rounded-full border border-(--border)" />
+               <img src={userProfile.picture} alt={userProfile.name} referrerPolicy="no-referrer" className="h-12 w-12 rounded-full border border-(--border)" />
              )}
              <div>
                <h2 className="text-lg font-semibold">Welcome back, {userProfile?.name}!</h2>
