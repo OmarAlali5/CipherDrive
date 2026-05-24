@@ -227,23 +227,23 @@ export const LandingPage = () => {
               className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 max-w-5xl mx-auto"
             >
               <FeatureCard
-                icon={<LockKey weight="duotone" className="h-8 w-8 text-emerald-500" />}
-                accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
-                glowColor="rgba(16,185,129,1)"
+                icon={<LockKey weight="duotone" className="h-8 w-8 text-purple-500" />}
+                accent="bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"
+                glowColor="rgba(168, 85, 247, 0.5)"
                 title="Zero-Knowledge Encryption"
                 body="Your encryption happens entirely in your browser. We never see, transmit, or store your passwords or unencrypted files."
               />
               <FeatureCard
-                icon={<CloudCheck weight="duotone" className="h-8 w-8 text-emerald-500" />}
-                accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
-                glowColor="rgba(59,130,246,1)"
+                icon={<CloudCheck weight="duotone" className="h-8 w-8 text-blue-500" />}
+                accent="bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"
+                glowColor="rgba(59, 130, 246, 0.5)"
                 title="Direct-to-Google Drive"
                 body="No middleman servers. Your encrypted ciphertext goes straight to your personal Google Drive, giving you full ownership and control."
               />
               <FeatureCard
                 icon={<ShieldCheck weight="duotone" className="h-8 w-8 text-emerald-500" />}
                 accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
-                glowColor="rgba(139,92,246,1)"
+                glowColor="rgba(16, 185, 129, 0.5)"
                 title="Advanced AES-GCM"
                 body="Advanced AES-256-GCM authenticated encryption. Cryptographically guarantees data integrity and makes your files completely tamper-proof by design."
               />
