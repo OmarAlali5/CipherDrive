@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { File as FileIcon, Download, Shield, Lock, Loader2, CheckCircle2, Trash2, Folder, ChevronRight, FolderPlus } from 'lucide-react'
+import { File as FileIcon, DownloadSimple, Shield, LockKey, CircleNotch, CheckCircle, Trash, Folder, CaretRight, FolderPlus } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { downloadFileFromDrive } from '@/core/driveApi'
 import { unpackageEncryptedFile, decryptData } from '@/core/crypto'
@@ -135,7 +135,7 @@ export const FileList = () => {
 
         toast.success('File decrypted and downloaded successfully!', {
           description: fileToProcess.originalName,
-          icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
+          icon: <CheckCircle weight="duotone" className="h-4 w-4 text-green-500" />
         })
       } catch (error: any) {
         console.error('Decryption/Download Error:', error)
@@ -200,7 +200,7 @@ export const FileList = () => {
   if (isLoadingFiles) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed border-slate-800 bg-[#020617]/40">
-        <Loader2 className="h-10 w-10 text-emerald-400 animate-spin mb-6" />
+        <CircleNotch weight="duotone" className="h-10 w-10 text-emerald-400 animate-spin mb-6" />
         <p className="text-xl font-semibold text-white tracking-tight">
           Syncing Vault
         </p>
@@ -221,7 +221,7 @@ export const FileList = () => {
           </button>
           {breadcrumbs.map((b, i) => (
             <React.Fragment key={b.id}>
-              <ChevronRight className="h-4 w-4 shrink-0 text-slate-700" />
+              <CaretRight weight="duotone" className="h-4 w-4 shrink-0 text-slate-700" />
               <button
                 onClick={() => navigateToBreadcrumb(i)}
                 className="hover:text-white font-medium transition-colors shrink-0 truncate max-w-[150px]"
@@ -237,7 +237,7 @@ export const FileList = () => {
           onClick={() => setShowNewFolderDialog(true)}
           className="shrink-0 border-slate-700 bg-slate-900/60 text-slate-300 hover:border-emerald-500/50 hover:bg-slate-800 hover:text-white transition-all"
         >
-          <FolderPlus className="h-4 w-4 mr-2" />
+          <FolderPlus weight="duotone" className="h-4 w-4 mr-2" />
           New Folder
         </Button>
       </div>
@@ -258,7 +258,7 @@ export const FileList = () => {
               }}
             />
             <div className="relative rounded-full bg-[#020617] p-6 border border-slate-800 text-slate-600">
-              <Shield className="h-12 w-12" strokeWidth={1.5} />
+              <Shield weight="duotone" className="h-12 w-12 text-emerald-500" />
             </div>
           </div>
           <p className="text-xl font-semibold text-white tracking-tight">
@@ -272,7 +272,7 @@ export const FileList = () => {
               onClick={() => setShowNewFolderDialog(true)}
               className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/30"
             >
-              <FolderPlus className="h-4 w-4 mr-2" />
+              <FolderPlus weight="duotone" className="h-4 w-4 mr-2" />
               Create First Folder
             </Button>
           </div>
@@ -281,7 +281,7 @@ export const FileList = () => {
         /* ─── File List ─── */
         <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-800/60 bg-[#020617]/40">
-            <Lock className="h-4 w-4 text-emerald-400" />
+            <LockKey weight="duotone" className="h-4 w-4 text-emerald-400" />
             <span className="text-sm font-semibold text-white">Encrypted Files</span>
             <span className="ml-auto inline-flex items-center justify-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-mono font-semibold text-emerald-400">
               {files.length}
@@ -299,9 +299,9 @@ export const FileList = () => {
                 >
                   <div className="rounded-lg bg-emerald-500/10 p-2.5 shrink-0 group-hover:scale-110 transition-transform duration-200">
                     {file.isFolder ? (
-                      <Folder className="h-5 w-5 text-emerald-400 fill-emerald-500/10" />
+                      <Folder weight="duotone" className="h-5 w-5 text-emerald-400" />
                     ) : (
-                      <FileIcon className="h-5 w-5 text-emerald-400" />
+                      <FileIcon weight="duotone" className="h-5 w-5 text-emerald-400" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -341,7 +341,7 @@ export const FileList = () => {
                         )
                       }
                     >
-                      <Download className="h-4 w-4 mr-1.5" />
+                      <DownloadSimple weight="duotone" className="h-4 w-4 mr-1.5" />
                       Decrypt
                     </Button>
                   )}
@@ -351,7 +351,7 @@ export const FileList = () => {
                     className="h-8 w-8 text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all"
                     onClick={() => handleDeleteClick(file.id, file.name)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash weight="duotone" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </div>
@@ -367,7 +367,7 @@ export const FileList = () => {
           <div className="flex items-center justify-between gap-4 text-sm">
             <div className="flex items-center gap-3 truncate">
               <div className="bg-emerald-500/10 p-2 rounded-lg">
-                <Download className="h-5 w-5 text-emerald-400" />
+                <DownloadSimple weight="duotone" className="h-5 w-5 text-emerald-400" />
               </div>
               <div className="flex flex-col items-start truncate">
                 <span className="font-medium truncate text-white">{downloadProgress?.fileName ?? 'Processing file...'}</span>
@@ -376,7 +376,7 @@ export const FileList = () => {
                 </span>
               </div>
             </div>
-            <Loader2 className="h-5 w-5 text-emerald-400 animate-spin shrink-0" />
+            <CircleNotch weight="duotone" className="h-5 w-5 text-emerald-400 animate-spin shrink-0" />
           </div>
           <div className="space-y-1.5">
             <Progress value={progress} className="h-2 w-full" />
@@ -417,7 +417,7 @@ export const FileList = () => {
               Cancel
             </Button>
             <Button onClick={handleCreateFolder} disabled={!newFolderName.trim() || isCreatingFolder}>
-              {isCreatingFolder && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isCreatingFolder && <CircleNotch weight="duotone" className="mr-2 h-4 w-4 animate-spin" />}
               Create Folder
             </Button>
           </DialogFooter>

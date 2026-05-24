@@ -3,7 +3,7 @@ import { useFileStore } from '@/store/fileStore'
 import { useAuthStore } from '@/store/authStore'
 import { PasswordDialog } from '@/components/crypto/PasswordDialog'
 import { Progress } from '@/components/ui/progress'
-import { Upload, File as FileIcon, Loader2, AlertCircle } from 'lucide-react'
+import { UploadSimple, File as FileIcon, CircleNotch, WarningCircle } from '@phosphor-icons/react'
 import { encryptData, packageEncryptedFile } from '@/core/crypto'
 import { uploadFileToDrive } from '@/core/driveApi'
 import { getSecureErrorMessage } from '@/lib/utils/errorHandler'
@@ -194,7 +194,7 @@ export const DragDropUploader = () => {
                   : 'bg-emerald-500/10 text-emerald-400'
               }`}
             >
-              <Upload className={`h-8 w-8 ${isDragOver ? 'animate-bounce' : ''}`} />
+              <UploadSimple weight="duotone" className={`h-8 w-8 ${isDragOver ? 'animate-bounce' : ''}`} />
             </div>
             <div>
               <p className="text-lg font-semibold tracking-tight text-white">
@@ -215,7 +215,7 @@ export const DragDropUploader = () => {
             <div className="w-full max-w-xs space-y-4 px-4">
               <div className="flex items-center gap-3 text-sm">
                 <div className="bg-emerald-500/10 p-2 rounded-lg shrink-0">
-                  <FileIcon className="h-5 w-5 text-emerald-400" />
+                  <FileIcon weight="duotone" className="h-5 w-5 text-emerald-400" />
                 </div>
                 <div className="flex flex-col items-start truncate overflow-hidden flex-1">
                   <span className="font-medium truncate w-full text-white text-sm">
@@ -225,7 +225,7 @@ export const DragDropUploader = () => {
                     {getStatusText()}
                   </span>
                 </div>
-                <Loader2 className="h-5 w-5 text-emerald-400 animate-spin shrink-0" />
+                <CircleNotch weight="duotone" className="h-5 w-5 text-emerald-400 animate-spin shrink-0" />
               </div>
               <div className="space-y-1.5">
                 <Progress value={uploadProgress} className="h-2 w-full" />
@@ -237,7 +237,7 @@ export const DragDropUploader = () => {
         {/* Error state */}
         {status === 'error' && errorMessage && (
           <div className="mt-6 flex items-center justify-center gap-2 text-sm text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-lg">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+            <WarningCircle weight="duotone" className="h-4 w-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}

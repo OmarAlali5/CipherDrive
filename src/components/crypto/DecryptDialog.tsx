@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Unlock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { LockOpen, Eye, EyeClosed, CircleNotch } from '@phosphor-icons/react'
 
 interface DecryptDialogProps {
   open: boolean
@@ -47,7 +47,7 @@ export const DecryptDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5 text-xl tracking-tight">
             <div className="rounded-lg bg-emerald-500/10 p-1.5">
-              <Unlock className="h-5 w-5 text-emerald-500" />
+              <LockOpen weight="duotone" className="h-5 w-5 text-emerald-500" />
             </div>
             {title}
           </DialogTitle>
@@ -79,9 +79,9 @@ export const DecryptDialog = ({
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-(--muted-foreground)/70 hover:text-(--foreground) transition-colors p-1 rounded-md hover:bg-(--muted)/50"
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeClosed weight="duotone" className="h-4 w-4" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye weight="duotone" className="h-4 w-4" />
                 )}
               </button>
             </div>
@@ -103,7 +103,7 @@ export const DecryptDialog = ({
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <CircleNotch weight="duotone" className="mr-2 h-4 w-4 animate-spin" />
                 Decrypting...
               </>
             ) : (

@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { Warning, CircleNotch } from '@phosphor-icons/react'
 
 interface DeleteConfirmationDialogProps {
   open: boolean
@@ -50,7 +50,7 @@ export const DeleteConfirmationDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-(--destructive)">
-            <AlertTriangle className="h-5 w-5" />
+            <Warning weight="duotone" className="h-5 w-5" />
             Delete Item
           </DialogTitle>
           <DialogDescription className="text-balance leading-relaxed">
@@ -90,7 +90,7 @@ export const DeleteConfirmationDialog = ({
             disabled={confirmText !== 'DELETE' || isLoading}
             className="w-full sm:w-auto"
           >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <CircleNotch weight="duotone" className="mr-2 h-4 w-4 animate-spin" />}
             Confirm Delete
           </Button>
         </DialogFooter>

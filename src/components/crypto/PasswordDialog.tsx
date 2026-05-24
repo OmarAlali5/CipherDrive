@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Lock, Eye, EyeOff, Loader2, AlertTriangle, CheckCircle2, Circle } from 'lucide-react'
+import { LockKey, Eye, EyeClosed, CircleNotch, Warning, CheckCircle, Circle } from '@phosphor-icons/react'
 
 interface PasswordDialogProps {
   open: boolean
@@ -87,7 +87,7 @@ export const PasswordDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5 text-xl tracking-tight">
             <div className="rounded-lg bg-(--primary)/10 p-1.5">
-              <Lock className="h-5 w-5 text-(--primary)" />
+              <LockKey weight="duotone" className="h-5 w-5 text-(--primary)" />
             </div>
             {title}
           </DialogTitle>
@@ -99,7 +99,7 @@ export const PasswordDialog = ({
         <div className="space-y-5 py-5">
           {/* Critical warning */}
           <Alert variant="warning" className="bg-amber-500/10">
-            <AlertTriangle className="h-4 w-4" />
+            <Warning weight="duotone" className="h-4 w-4" />
             <AlertTitle>Critical Warning</AlertTitle>
             <AlertDescription>
               CRITICAL: Your password is NOT stored anywhere on our servers. If you
@@ -133,9 +133,9 @@ export const PasswordDialog = ({
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-(--muted-foreground)/70 hover:text-(--foreground) transition-colors p-1 rounded-md hover:bg-(--muted)/50"
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeClosed weight="duotone" className="h-4 w-4" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye weight="duotone" className="h-4 w-4" />
                 )}
               </button>
             </div>
@@ -152,9 +152,9 @@ export const PasswordDialog = ({
                 className="flex items-center gap-2.5"
               >
                 {criterion.passed ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 transition-colors duration-200" />
+                  <CheckCircle weight="duotone" className="h-4 w-4 shrink-0 text-emerald-500 transition-colors duration-200" />
                 ) : (
-                  <Circle className="h-4 w-4 shrink-0 text-slate-500 transition-colors duration-200" />
+                  <Circle weight="duotone" className="h-4 w-4 shrink-0 text-slate-500 transition-colors duration-200" />
                 )}
                 <span
                   className={`text-sm transition-colors duration-200 ${
@@ -186,7 +186,7 @@ export const PasswordDialog = ({
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <CircleNotch weight="duotone" className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
             ) : (

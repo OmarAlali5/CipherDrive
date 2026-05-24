@@ -7,12 +7,12 @@ import { MatrixTrail } from '@/components/hero/MatrixTrail'
 import { CipherRevealText } from '@/components/ui/CipherRevealText'
 import { useAuthStore } from '@/store/authStore'
 import {
-  Lock,
+  LockKey,
   ShieldCheck,
-  Cloud,
-  Zap,
-  ChevronRight,
-} from 'lucide-react'
+  CloudCheck,
+  Lightning,
+  CaretRight,
+} from '@phosphor-icons/react'
 
 /* ─────────────────────────────────────────────
    Sub-components
@@ -57,11 +57,7 @@ function FeatureCard({ icon, accent, glowColor, title, body }: FeatureCardProps)
       />
 
       <div
-        className="mb-5 inline-flex rounded-lg border p-3"
-        style={{
-          borderColor: `${glowColor}33`,
-          background: `${glowColor}0d`,
-        }}
+        className="mb-5 inline-flex p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md"
       >
         {icon}
       </div>
@@ -209,7 +205,7 @@ export const LandingPage = () => {
           <div className="container mx-auto px-4 relative z-10">
             <div className="mb-12 text-center">
               <Tag>
-                <Zap strokeWidth={1.5} className="h-3.5 w-3.5" />
+                <Lightning weight="duotone" className="h-3.5 w-3.5 text-emerald-500" />
                 Core capabilities
               </Tag>
               <h2 className="mt-5 text-3xl font-bold text-white tracking-tight">
@@ -231,25 +227,25 @@ export const LandingPage = () => {
               className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 max-w-5xl mx-auto"
             >
               <FeatureCard
-                icon={<Lock strokeWidth={1.5} className="h-6 w-6 text-emerald-400" />}
+                icon={<LockKey weight="duotone" className="h-8 w-8 text-emerald-500" />}
                 accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
                 glowColor="rgba(16,185,129,1)"
                 title="Zero-Knowledge Encryption"
                 body="Your encryption happens entirely in your browser. We never see, transmit, or store your passwords or unencrypted files."
               />
               <FeatureCard
-                icon={<Cloud strokeWidth={1.5} className="h-6 w-6 text-blue-400" />}
-                accent="bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"
+                icon={<CloudCheck weight="duotone" className="h-8 w-8 text-emerald-500" />}
+                accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
                 glowColor="rgba(59,130,246,1)"
                 title="Direct-to-Google Drive"
                 body="No middleman servers. Your encrypted ciphertext goes straight to your personal Google Drive, giving you full ownership and control."
               />
               <FeatureCard
-                icon={<ShieldCheck strokeWidth={1.5} className="h-6 w-6 text-violet-400" />}
-                accent="bg-gradient-to-r from-transparent via-violet-500/50 to-transparent"
+                icon={<ShieldCheck weight="duotone" className="h-8 w-8 text-emerald-500" />}
+                accent="bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
                 glowColor="rgba(139,92,246,1)"
-                title="Enterprise-Grade AES-GCM"
-                body="Military-standard authenticated encryption with integrity verification. Tamper-proof by design."
+                title="Advanced AES-GCM"
+                body="Advanced AES-256-GCM authenticated encryption. Cryptographically guarantees data integrity and makes your files completely tamper-proof by design."
               />
             </motion.div>
           </div>
@@ -265,7 +261,7 @@ export const LandingPage = () => {
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
               <Tag>
-                <ChevronRight strokeWidth={1.5} className="h-3.5 w-3.5" />
+                <CaretRight weight="duotone" className="h-3.5 w-3.5 text-emerald-500" />
                 Process
               </Tag>
               <h2 className="mt-5 text-3xl font-bold text-white tracking-tight">
@@ -325,13 +321,8 @@ export const LandingPage = () => {
                 </span>
               </div>
               <p className="font-mono text-xs text-slate-600">
-                © 2026 CipherDrive. Open Source Privacy.
+                © 2026 CipherDrive
               </p>
-              <div className="flex items-center gap-4 text-xs text-slate-600 font-mono">
-                <a href="#" className="hover:text-slate-400 transition-colors">GitHub</a>
-                <a href="#" className="hover:text-slate-400 transition-colors">Docs</a>
-                <a href="#" className="hover:text-slate-400 transition-colors">Privacy</a>
-              </div>
             </div>
           </div>
         </footer>

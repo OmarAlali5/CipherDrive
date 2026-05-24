@@ -2,7 +2,7 @@ import { useAuthStore } from '@/store/authStore'
 import { DragDropUploader } from '@/components/crypto/DragDropUploader'
 import { FileList } from '@/components/drive/FileList'
 import { Button } from '@/components/ui/button'
-import { Shield, LogOut } from 'lucide-react'
+import { Shield, SignOut } from '@phosphor-icons/react'
 import { Toaster } from 'sonner'
 
 export const Dashboard = () => {
@@ -38,7 +38,7 @@ export const Dashboard = () => {
                 )}
               </div>
               <Button variant="ghost" size="sm" onClick={logout} className="text-(--muted-foreground) hover:text-(--foreground)">
-                <LogOut className="h-4 w-4 mr-2" />
+                <SignOut weight="duotone" className="h-4 w-4 mr-2" />
                 Logout
               </Button>
             </div>
@@ -63,7 +63,7 @@ export const Dashboard = () => {
           {/* Hero section */}
           <div className="text-center space-y-2 pt-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-(--primary)/10 px-4 py-1.5 text-sm text-(--primary)">
-              <Shield className="h-4 w-4" />
+              <Shield weight="duotone" className="h-4 w-4" />
               Zero-Knowledge Encryption
             </div>
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
