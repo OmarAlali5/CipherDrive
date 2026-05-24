@@ -64,7 +64,7 @@ export const InteractiveHero = () => {
             </div>
 
             {/* Headline — static plain text */}
-            <h1 className="anim-fade-up anim-delay-1 mt-8 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white">
+            <h1 className="anim-fade-up anim-delay-1 mt-8 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-['Chakra_Petch'] font-semibold tracking-tight leading-[1.08] text-white">
               Absolute Privacy,{' '}
               <br className="hidden sm:block" />
               <span
