@@ -248,8 +248,8 @@ export const LandingPage = () => {
                 icon={<ShieldCheck strokeWidth={1.5} className="h-6 w-6 text-violet-400" />}
                 accent="bg-gradient-to-r from-transparent via-violet-500/50 to-transparent"
                 glowColor="rgba(139,92,246,1)"
-                title="Enterprise-Grade AES-GCM"
-                body="Military-standard authenticated encryption with integrity verification. Tamper-proof by design."
+                title="Advanced AES-GCM"
+                body="Advanced AES-256-GCM authenticated encryption. Cryptographically guarantees data integrity and makes your files completely tamper-proof by design."
               />
             </motion.div>
           </div>
