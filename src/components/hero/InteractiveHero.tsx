@@ -58,7 +58,7 @@ export const InteractiveHero = () => {
               <MagneticWrapper strength={8}>
                 <span className="inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/30 bg-emerald-500/5 px-3 py-1 text-[11px] font-mono font-medium uppercase tracking-[0.15em] text-emerald-400 backdrop-blur-sm">
                   <ShieldCheck strokeWidth={1.5} className="h-3.5 w-3.5" />
-                  Enterprise-grade AES-256 cryptography
+                  Advanced AES-256 cryptography
                 </span>
               </MagneticWrapper>
             </div>
