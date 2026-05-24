@@ -325,13 +325,8 @@ export const LandingPage = () => {
                 </span>
               </div>
               <p className="font-mono text-xs text-slate-600">
-                © 2026 CipherDrive. Open Source Privacy.
+                © 2026 CipherDrive
               </p>
-              <div className="flex items-center gap-4 text-xs text-slate-600 font-mono">
-                <a href="#" className="hover:text-slate-400 transition-colors">GitHub</a>
-                <a href="#" className="hover:text-slate-400 transition-colors">Docs</a>
-                <a href="#" className="hover:text-slate-400 transition-colors">Privacy</a>
-              </div>
             </div>
           </div>
         </footer>
