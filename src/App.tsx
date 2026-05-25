@@ -16,7 +16,7 @@ export default function App() {
         <Route path="/" element={isAuthenticated ? <Dashboard /> : <LandingPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<h1 className="text-white text-center mt-20 text-2xl">404 - Page Not Found by React Router</h1>} />
       </Routes>
     </Router>
   )
