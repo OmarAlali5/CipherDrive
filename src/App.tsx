@@ -2,7 +2,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Toaster } from 'sonner'
 import { LandingPage } from '@/pages/LandingPage'
 import { Dashboard } from '@/components/Dashboard'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { PrivacyPolicy } from '@/pages/PrivacyPolicy'
 import { TermsOfService } from '@/pages/TermsOfService'
 
