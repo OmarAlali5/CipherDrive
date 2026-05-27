@@ -1,56 +1,57 @@
 /**
  * Google Drive REST API interactions for CipherDrive.
+ * Pure utility functions with no side effects or store couplings.
  */
 
-import { useAuthStore } from '@/store/authStore'
-import { useFileStore } from '@/store/fileStore'
-import { toast } from 'sonner'
-
-export interface DriveUploadResponse {
+export interface DriveFileMetadata {
   id: string;
   name: string;
   mimeType: string;
+  size?: string;
+  createdTime?: string;
 }
 
-/**
- * Global API Error handler checking for 401 Unauthorized
- */
+export class DriveApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'DriveApiError';
+    this.status = status;
+  }
+}
+
 const handleApiError = async (response: Response, context: string) => {
   if (response.status === 401) {
-    useAuthStore.getState().logout();
-    toast.error('Session expired, please log in again.');
-    throw new Error('Unauthorized');
+    throw new DriveApiError('Unauthorized', 401);
   }
   const errorText = await response.text();
-  throw new Error(`Google Drive ${context} failed: ${response.status} - ${errorText}`);
+  throw new DriveApiError(`Google Drive ${context} failed: ${response.status} - ${errorText}`, response.status);
 }
 
 /**
  * Uploads a packaged (encrypted) blob to Google Drive using the Resumable Upload Protocol.
- * This is a two-step process to ensure large files or binary blobs are handled correctly.
  *
  * @param fileBlob - The Blob containing the packaged encrypted file data.
  * @param filename - The original filename. The function appends '.enc' to it.
  * @param accessToken - The user's Google OAuth 2.0 access token.
+ * @param parentId - The optional ID of the parent folder.
+ * @param onProgress - Optional callback for upload progress percentage (0-100).
  * @returns A Promise resolving to the Google Drive file metadata response.
  */
 export async function uploadFileToDrive(
   fileBlob: Blob,
   filename: string,
   accessToken: string,
-  parentId?: string | null
-): Promise<DriveUploadResponse> {
-  const metadata: any = {
+  parentId?: string | null,
+  onProgress?: (progress: number) => void
+): Promise<DriveFileMetadata> {
+  const metadata: { name: string; parents?: string[] } = {
     name: `${filename}.enc`,
   };
 
   if (parentId) {
     metadata.parents = [parentId];
   }
-
-  // Step 1: Initiate Resumable Upload
-  const fileStore = useFileStore.getState();
-  fileStore.setStatus('preparing');
 
   const initResponse = await fetch(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
@@ -73,37 +74,30 @@ export async function uploadFileToDrive(
     throw new Error('Upload initialization failed: No Location header returned from Google Drive.');
   }
 
-  // Step 2: Upload the actual encrypted Blob using XMLHttpRequest for real progress
-  fileStore.setStatus('uploading');
-  fileStore.setProgress(0);
-
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', uploadUrl, true);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 
     xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
+      if (event.lengthComputable && onProgress) {
         const percentComplete = Math.round((event.loaded / event.total) * 100);
-        fileStore.setProgress(percentComplete);
+        onProgress(percentComplete);
       }
     };
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        fileStore.setStatus('finalizing');
         try {
-          resolve(JSON.parse(xhr.responseText));
+          resolve(JSON.parse(xhr.responseText) as DriveFileMetadata);
         } catch (e) {
           resolve({ id: 'unknown', name: metadata.name, mimeType: 'application/octet-stream' });
         }
       } else {
         if (xhr.status === 401) {
-          useAuthStore.getState().logout();
-          toast.error('Session expired, please log in again.');
-          reject(new Error('Unauthorized'));
+          reject(new DriveApiError('Unauthorized', 401));
         } else {
-          reject(new Error(`Google Drive upload failed: ${xhr.status} - ${xhr.responseText}`));
+          reject(new DriveApiError(`Google Drive upload failed: ${xhr.status} - ${xhr.responseText}`, xhr.status));
         }
       }
     };
@@ -115,10 +109,6 @@ export async function uploadFileToDrive(
 
 /**
  * Downloads a file from Google Drive using its ID.
- *
- * @param fileId - The ID of the file to download.
- * @param accessToken - The user's Google OAuth 2.0 access token.
- * @returns A Promise resolving to the downloaded ArrayBuffer.
  */
 export async function downloadFileFromDrive(
   fileId: string,
@@ -139,12 +129,8 @@ export async function downloadFileFromDrive(
 
 /**
  * Lists files created by the application from Google Drive.
- *
- * @param accessToken - The user's Google OAuth 2.0 access token.
- * @param parentId - The ID of the folder to list contents from (defaults to 'root').
- * @returns A Promise resolving to an array of Google Drive file metadata objects.
  */
-export async function listFilesFromDrive(accessToken: string, parentId?: string | null): Promise<any[]> {
+export async function listFilesFromDrive(accessToken: string, parentId?: string | null): Promise<DriveFileMetadata[]> {
   const q = `trashed=false and '${parentId || 'root'}' in parents`;
   const response = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,createdTime,mimeType)`,
@@ -160,23 +146,18 @@ export async function listFilesFromDrive(accessToken: string, parentId?: string 
   }
 
   const data = await response.json();
-  return data.files || [];
+  return data.files as DriveFileMetadata[] || [];
 }
 
 /**
  * Creates a new folder in Google Drive.
- *
- * @param name - The plaintext name of the folder.
- * @param accessToken - The user's Google OAuth 2.0 access token.
- * @param parentId - The optional ID of the parent folder.
- * @returns A Promise resolving to the created folder metadata.
  */
 export async function createFolder(
   name: string,
   accessToken: string,
   parentId?: string | null
-): Promise<any> {
-  const metadata: any = {
+): Promise<DriveFileMetadata> {
+  const metadata: { name: string; mimeType: string; parents?: string[] } = {
     name,
     mimeType: 'application/vnd.google-apps.folder',
   };
@@ -198,15 +179,11 @@ export async function createFolder(
     await handleApiError(response, 'folder creation');
   }
 
-  return response.json();
+  return response.json() as Promise<DriveFileMetadata>;
 }
 
 /**
  * Permanently deletes a file or folder from Google Drive.
- *
- * @param fileId - The ID of the file or folder to delete.
- * @param accessToken - The user's Google OAuth 2.0 access token.
- * @returns A Promise resolving to true if deletion was successful.
  */
 export async function deleteFileFromDrive(
   fileId: string,

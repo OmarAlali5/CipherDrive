@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { EncryptedFile, DownloadProgress, ProcessState } from '@/types'
-import { listFilesFromDrive, createFolder, deleteFileFromDrive } from '@/core/driveApi'
+import { listFilesFromDrive, createFolder, deleteFileFromDrive, type DriveFileMetadata } from '@/core/driveApi'
+import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 
 interface FileState {
@@ -50,8 +51,12 @@ export const useFileStore = create<FileState>((set, get) => ({
       set((state) => ({
         files: state.files.filter((f) => f.id !== id),
       }))
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete file:', error)
+      if (error.name === 'DriveApiError' && error.status === 401) {
+        useAuthStore.getState().logout()
+        toast.error('Session expired, please log in again.')
+      }
       throw error // Re-throw to be handled by the UI
     }
   },
@@ -60,14 +65,14 @@ export const useFileStore = create<FileState>((set, get) => ({
     set({ isLoadingFiles: true })
     try {
       const driveFiles = await listFilesFromDrive(accessToken, currentFolderId)
-      const formattedFiles: EncryptedFile[] = driveFiles.map((f: any) => {
+      const formattedFiles: EncryptedFile[] = driveFiles.map((f: DriveFileMetadata) => {
         const isFolder = f.mimeType === 'application/vnd.google-apps.folder'
         return {
           id: f.id,
           name: f.name,
           originalName: isFolder ? f.name : f.name.replace(/\.enc$/, ''),
           size: parseInt(f.size || '0', 10),
-          uploadedAt: new Date(f.createdTime),
+          uploadedAt: f.createdTime ? new Date(f.createdTime) : new Date(),
           isFolder,
         }
       })
@@ -82,7 +87,12 @@ export const useFileStore = create<FileState>((set, get) => ({
       set({ files: formattedFiles })
     } catch (error: any) {
       console.error('Failed to fetch files from Google Drive:', error)
-      toast.error('Failed to load your secure files.')
+      if (error.name === 'DriveApiError' && error.status === 401) {
+        useAuthStore.getState().logout()
+        toast.error('Session expired, please log in again.')
+      } else {
+        toast.error('Failed to load your secure files.')
+      }
     } finally {
       set({ isLoadingFiles: false })
     }
@@ -93,9 +103,14 @@ export const useFileStore = create<FileState>((set, get) => ({
       await createFolder(name, accessToken, currentFolderId)
       await fetchFiles(accessToken)
       toast.success('Folder created successfully!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create folder:', error)
-      toast.error('Failed to create folder.')
+      if (error.name === 'DriveApiError' && error.status === 401) {
+        useAuthStore.getState().logout()
+        toast.error('Session expired, please log in again.')
+      } else {
+        toast.error('Failed to create folder.')
+      }
     }
   },
   navigateToFolder: (id: string, name: string) =>

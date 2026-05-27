@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'cipherdrive-auth',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 )

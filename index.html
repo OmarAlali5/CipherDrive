@@ -1,12 +1,11 @@
 <!doctype html>
 <html lang="en" class="dark">
   <head>
-    <meta charset="UTF-8" />
+    <base href="/" /> <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://www.googleapis.com;">
     <title>CipherDrive</title>
-    <!-- Spline 3D Viewer -->
-    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.94/build/spline-viewer.js"></script>
   </head>
   <body>
     <div id="root"></div>

@@ -6,6 +6,7 @@ import { InteractiveHero } from '@/components/hero/InteractiveHero'
 import { MatrixTrail } from '@/components/hero/MatrixTrail'
 import { CipherRevealText } from '@/components/ui/CipherRevealText'
 import { useAuthStore } from '@/store/authStore'
+import { Link } from 'react-router-dom'
 import {
   LockKey,
   ShieldCheck,
@@ -319,6 +320,10 @@ export const LandingPage = () => {
                 <span className="font-mono text-sm font-semibold text-slate-400">
                   Cipher<span className="text-emerald-500/80">Drive</span>
                 </span>
+              </div>
+              <div className="flex items-center gap-6 text-sm text-slate-500">
+                <Link to="/privacy" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link>
+                <Link to="/terms" className="hover:text-emerald-400 transition-colors">Terms of Service</Link>
               </div>
               <p className="font-mono text-xs text-slate-600">
                 © 2026 CipherDrive

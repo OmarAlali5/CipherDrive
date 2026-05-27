@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress'
 import { UploadSimple, File as FileIcon, CircleNotch, WarningCircle } from '@phosphor-icons/react'
 import { encryptData, packageEncryptedFile } from '@/core/crypto'
 import { uploadFileToDrive } from '@/core/driveApi'
-import { getSecureErrorMessage } from '@/lib/utils/errorHandler'
+import { getSecureErrorMessage } from '@/lib/errors/errorHandler'
 import { toast } from 'sonner'
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
@@ -108,8 +108,14 @@ export const DragDropUploader = () => {
           const packagedBlob = packageEncryptedFile(salt, iv, encryptedBuffer)
           
           // 4. Upload to Google Drive directly from the browser
-          // Note: driveApi.ts will dispatch 'uploading' and update progress using XHR
-          const driveResponse = await uploadFileToDrive(packagedBlob, fileToUpload.name, accessToken, currentFolderId)
+          setStatus('uploading')
+          const driveResponse = await uploadFileToDrive(
+            packagedBlob, 
+            fileToUpload.name, 
+            accessToken, 
+            currentFolderId,
+            (progress) => setProgress(progress)
+          )
           
           setStatus('success')
           setProgress(100)
@@ -132,6 +138,12 @@ export const DragDropUploader = () => {
           setTimeout(() => resetState(), 3000)
         } catch (error: any) {
           console.error('Upload Process Error:', error)
+          if (error.name === 'DriveApiError' && error.status === 401) {
+            useAuthStore.getState().logout()
+            toast.error('Session expired, please log in again.')
+            resetState()
+            return
+          }
           const secureMsg = getSecureErrorMessage(error)
           setError(secureMsg)
           toast.error(secureMsg)

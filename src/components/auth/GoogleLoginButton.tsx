@@ -1,7 +1,7 @@
 import { useGoogleLogin } from '@react-oauth/google'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
-import { LogIn } from 'lucide-react'
+import { SignIn } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
@@ -65,7 +65,7 @@ export const GoogleLoginButton = () => {
       disabled={isLoading}
       className="w-full sm:w-auto px-8 gap-3"
     >
-      <LogIn className="h-5 w-5" />
+      <SignIn className="h-5 w-5" />
       {isLoading ? 'Connecting to Google...' : 'Login with Google'}
     </Button>
   )

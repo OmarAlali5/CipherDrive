@@ -124,10 +124,6 @@ export async function decryptData(
 
   const key = await kdfDeriveKey(password, salt, resolvedConfig);
 
-  console.log("Detected Version:", kdfConfig ? "manual" : (saltToKdfConfig.has(salt) ? "cached" : "default"));
-  console.log("Salt Length:", salt.byteLength); // MUST be 16
-  console.log("IV Length:", iv.byteLength); // MUST be 12
-
   return window.crypto.subtle.decrypt(
     { name: 'AES-GCM', iv: iv as any },
     key,
