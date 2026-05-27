@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./public/logo.png" alt="CipherDrive Logo" width="150" />
 
-  # 🔐 CipherDrive
+  # CipherDrive
 
   ### *Don't trust us. Don't trust Google. Trust Math.*
 
@@ -18,7 +18,7 @@
 
   <br/>
 
-  [Live Demo](#) · [Report Bug](https://github.com/OmarAlali5/CipherDrive/issues) · [Request Feature](https://github.com/OmarAlali5/CipherDrive/issues)
+  [Live Demo](https://cipherdrive.onrender.com) · [Report Bug](https://github.com/OmarAlali5/CipherDrive/issues) · [Request Feature](https://github.com/OmarAlali5/CipherDrive/issues)
 
 </div>
 
@@ -28,7 +28,7 @@
 
 <br/>
 
-## 🌐 Overview
+## Overview
 
 Every file you upload to Google Drive is readable by Google. Every photo, every document, every secret, sitting in plain text on someone else's computer.
 
@@ -42,20 +42,20 @@ The result? Even if Google, a hacker, or a government agency gains full access t
 
 <br/>
 
-## ✨ Core Features
+## Core Features
 
 | Feature | Description |
 |---|---|
-| 🛡️ **Zero-Knowledge Privacy** | Encryption keys are derived locally in the browser and **never leave your device**. Not even CipherDrive's own infrastructure (a static site!) can access them. |
-| 🔑 **Military-Grade Cryptography** | Files are encrypted with **AES-256-GCM** — the same standard used by intelligence agencies and banks worldwide. Keys are derived using **PBKDF2** with **600,000 iterations** (exceeding OWASP recommendations). |
-| ☁️ **Direct-to-Drive Architecture** | There is **no middleman server**. Files stream directly from your browser to the Google Drive API using resumable uploads. Your storage limit is your Google Drive quota — nothing more, nothing less. |
-| 🎨 **Premium Cyber-Aesthetic UI** | A stunning interface featuring **glassmorphism**, **magnetic UI interactions**, **magic gradient borders**, and smooth **Framer Motion** animations — because security doesn't have to be ugly. |
-| 🔄 **Resumable Uploads** | Large files are uploaded via the Google Drive **Resumable Upload** protocol, ensuring reliability even on unstable connections. |
-| 📦 **Versioned Binary Format** | Encrypted files are packaged with a self-describing binary header (`CDRV2`), enabling seamless forward-compatible decryption as the protocol evolves. |
+| **Zero-Knowledge Privacy** | Encryption keys are derived locally in the browser and **never leave your device**. Not even CipherDrive's own infrastructure (a static site!) can access them. |
+| **Military-Grade Cryptography** | Files are encrypted with **AES-256-GCM**, the same standard used by intelligence agencies and banks worldwide. Keys are derived using **PBKDF2** with **600,000 iterations** (exceeding OWASP recommendations). |
+| **Direct-to-Drive Architecture** | There is **no middleman server**. Files stream directly from your browser to the Google Drive API using resumable uploads. Your storage limit is your Google Drive quota, nothing more, nothing less. |
+| **Premium Cyber-Aesthetic UI** | A stunning interface featuring **glassmorphism**, **magnetic UI interactions**, **magic gradient borders**, and smooth **Framer Motion** animations; because security doesn't have to be ugly. |
+| **Resumable Uploads** | Large files are uploaded via the Google Drive **Resumable Upload** protocol, ensuring reliability even on unstable connections. |
+| **Versioned Binary Format** | Encrypted files are packaged with a self-describing binary header (`CDRV2`), enabling seamless forward-compatible decryption as the protocol evolves. |
 
 <br/>
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 <div align="center">
 
@@ -67,13 +67,12 @@ The result? Even if Google, a hacker, or a government agency gains full access t
 | **Cryptography** | Web Crypto API (AES-256-GCM · PBKDF2) |
 | **Authentication** | Google Identity Services (OAuth 2.0) |
 | **Cloud Storage** | Google Drive REST API v3 (Resumable Uploads) |
-| **Deployment** | Cloudflare Pages |
 
 </div>
 
 <br/>
 
-## 🔬 Under the Hood — Cryptographic Pipeline
+## Under the Hood - Cryptographic Pipeline
 
 CipherDrive's encryption pipeline is designed for both security and simplicity. Here's exactly what happens when you encrypt a file:
 
@@ -124,7 +123,7 @@ CipherDrive's encryption pipeline is designed for both security and simplicity. 
 
 <br/>
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -182,7 +181,7 @@ npm run deploy
 
 <br/>
 
-## 🏛️ Project Architecture
+## Project Architecture
 
 ```
 CipherDrive/
