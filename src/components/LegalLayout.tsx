@@ -10,7 +10,6 @@ export function LegalLayout({ children, title }: { children: React.ReactNode, ti
       {/* Background glowing orbs for aesthetics */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[128px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[128px] pointer-events-none" />
-
       <div className="max-w-3xl w-full z-10">
         <button
           onClick={() => navigate('/')}
