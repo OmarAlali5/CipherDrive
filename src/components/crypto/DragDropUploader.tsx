@@ -1,9 +1,12 @@
 import { useState, useCallback, useEffect } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useFileStore } from '@/store/fileStore'
 import { useAuthStore } from '@/store/authStore'
 import { PasswordDialog } from '@/components/crypto/PasswordDialog'
 import { Progress } from '@/components/ui/progress'
-import { UploadSimple, File as FileIcon, CircleNotch, WarningCircle } from '@phosphor-icons/react'
+import { IndeterminateBar } from '@/components/ui/IndeterminateBar'
+import { Button } from '@/components/ui/button'
+import { UploadSimple, File as FileIcon, CircleNotch, CheckCircle, WarningCircle } from '@phosphor-icons/react'
 import { encryptData, packageEncryptedFile } from '@/core/crypto'
 import { uploadFileToDrive, isUnauthorizedError } from '@/core/driveApi'
 import { getSecureErrorMessage } from '@/lib/errors/errorHandler'
@@ -25,6 +28,10 @@ export const DragDropUploader = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [processingFile, setProcessingFile] = useState<{ name: string; size: number } | null>(null)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  // Reduced-motion visitors still get every state change (nothing is
+  // skipped), just without the sliding/fading transition between them.
+  const fadeDuration = prefersReducedMotion ? 0 : 0.2
 
   const {
     status,
@@ -166,6 +173,7 @@ export const DragDropUploader = () => {
   )
 
   const isProcessing = status !== 'idle' && status !== 'error'
+  const isSuccess = status === 'success'
 
   return (
     <>
@@ -191,61 +199,142 @@ export const DragDropUploader = () => {
           disabled={isProcessing}
         />
 
-        <div className={cn('flex flex-col items-center gap-4', isProcessing && 'opacity-0')} aria-hidden={isProcessing}>
-          <div
-            className={cn(
-              'rounded-full p-3.5 transition-colors',
-              isDragOver ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary',
+        {/* Idle content and the processing overlay occupy the same
+            space and cross-fade — the dropzone never jumps in height. */}
+        <div className="relative">
+          <AnimatePresence mode="wait" initial={false}>
+            {!isProcessing ? (
+              <motion.div
+                key="idle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: fadeDuration }}
+                className="flex flex-col items-center gap-4"
+              >
+                <div
+                  className={cn(
+                    'rounded-full p-3.5 transition-colors',
+                    isDragOver ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary',
+                  )}
+                >
+                  <UploadSimple weight="regular" className="h-7 w-7" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-base font-medium text-foreground">
+                    {isDragOver ? 'Drop to encrypt' : 'Drag & drop a file, or click to select'}
+                  </p>
+                  <p className="mt-1.5 font-mono text-xs text-muted-foreground">
+                    Max 500&nbsp;MB · AES-256-GCM · PBKDF2-SHA256 (600,000 rounds)
+                  </p>
+                </div>
+              </motion.div>
+            ) : (
+              processingFile && (
+                <motion.div
+                  key="processing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: fadeDuration }}
+                  className="flex flex-col items-center gap-4"
+                >
+                  <div className="flex w-full max-w-xs items-center gap-3 text-sm">
+                    <div className="shrink-0 rounded-lg bg-primary/10 p-2">
+                      <FileIcon weight="regular" className="h-5 w-5 text-primary" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {processingFile.name}
+                      </p>
+                      <AnimatePresence mode="wait" initial={false}>
+                        <motion.p
+                          key={status}
+                          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 4 }}
+                          transition={{ duration: fadeDuration }}
+                          className="truncate font-mono text-xs text-muted-foreground"
+                          aria-live="polite"
+                        >
+                          {status === 'uploading'
+                            ? `Uploading to Google Drive… ${uploadProgress}%`
+                            : STATUS_TEXT[status] ?? ''}
+                        </motion.p>
+                      </AnimatePresence>
+                    </div>
+                    <AnimatePresence mode="wait" initial={false}>
+                      {isSuccess ? (
+                        <motion.span
+                          key="done"
+                          initial={{ opacity: 0, scale: 0.6 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: 'easeOut' }}
+                          className="flex shrink-0 items-center gap-1.5"
+                        >
+                          <CheckCircle weight="fill" className="h-5 w-5 text-primary" aria-hidden="true" />
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {formatFileSize(processingFile.size)}
+                          </span>
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="spinner"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: fadeDuration }}
+                          className="shrink-0"
+                        >
+                          <CircleNotch weight="bold" className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Stages with no real percentage (reading the file,
+                      running PBKDF2 + AES-GCM) get an honest indeterminate
+                      bar instead of a fabricated one. Only the upload
+                      itself has a real byte-progress number. */}
+                  {status === 'uploading' || isSuccess ? (
+                    <Progress value={isSuccess ? 100 : uploadProgress} className="w-full max-w-xs" />
+                  ) : (
+                    <IndeterminateBar label={STATUS_TEXT[status] ?? 'Working'} className="w-full max-w-xs" />
+                  )}
+                </motion.div>
+              )
             )}
-          >
-            <UploadSimple weight="regular" className="h-7 w-7" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-base font-medium text-foreground">
-              {isDragOver ? 'Drop to encrypt' : 'Drag & drop a file, or click to select'}
-            </p>
-            <p className="mt-1.5 font-mono text-xs text-muted-foreground">
-              Max 500&nbsp;MB · AES-256-GCM · PBKDF2-SHA256 (600,000 rounds)
-            </p>
-          </div>
+          </AnimatePresence>
         </div>
 
-        {/* Processing overlay */}
-        {isProcessing && processingFile && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-4">
-            <div className="flex w-full max-w-xs items-center gap-3 text-sm">
-              <div className="shrink-0 rounded-lg bg-primary/10 p-2">
-                <FileIcon weight="regular" className="h-5 w-5 text-primary" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {processingFile.name}
-                </p>
-                <p className="truncate font-mono text-xs text-muted-foreground" aria-live="polite">
-                  {status === 'uploading'
-                    ? `Uploading to Google Drive… ${uploadProgress}%`
-                    : STATUS_TEXT[status] ?? ''}
-                </p>
-              </div>
-              {status !== 'success' ? (
-                <CircleNotch weight="bold" className="h-5 w-5 shrink-0 animate-spin text-primary" aria-hidden="true" />
-              ) : (
-                <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                  {formatFileSize(processingFile.size)}
-                </span>
-              )}
-            </div>
-            <Progress value={status === 'success' ? 100 : uploadProgress} className="w-full max-w-xs" />
-          </div>
-        )}
-
         {/* Error state */}
-        {status === 'error' && errorMessage && (
-          <div className="mt-6 flex items-center justify-center gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-            <WarningCircle weight="regular" className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
+        <AnimatePresence initial={false}>
+          {status === 'error' && errorMessage && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -6 }}
+              transition={{ duration: fadeDuration }}
+              className="mt-6 flex items-center justify-center gap-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+            >
+              <WarningCircle weight="regular" className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{errorMessage}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault()
+                  resetState()
+                }}
+                className="ml-1 h-auto shrink-0 px-2 py-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                Try again
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </label>
 
       {selectedFile && (

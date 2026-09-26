@@ -1,9 +1,12 @@
+import { motion } from 'framer-motion'
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton'
 import { Dashboard } from '@/components/Dashboard'
 import { Hero } from '@/components/hero/Hero'
+import { Reveal } from '@/components/motion/Reveal'
 import { CipherRevealText } from '@/components/ui/CipherRevealText'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useAuthStore } from '@/store/authStore'
+import { fadeInUp } from '@/lib/motionVariants'
 import { Link } from 'react-router-dom'
 import {
   LockKey,
@@ -24,7 +27,8 @@ interface FeatureCardProps {
 }
 function FeatureCard({ icon, title, body, lead }: FeatureCardProps) {
   return (
-    <div
+    <motion.div
+      variants={fadeInUp}
       className={`rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/30 sm:p-7 ${
         lead ? 'sm:col-span-2' : ''
       }`}
@@ -38,7 +42,7 @@ function FeatureCard({ icon, title, body, lead }: FeatureCardProps) {
       <p className={`text-sm leading-relaxed text-muted-foreground ${lead ? 'max-w-2xl' : ''}`}>
         {body}
       </p>
-    </div>
+    </motion.div>
   )
 }
 
@@ -49,7 +53,7 @@ interface StepProps {
 }
 function Step({ number, title, body }: StepProps) {
   return (
-    <div className="flex flex-1 flex-col items-center px-4 text-center">
+    <motion.div variants={fadeInUp} className="flex flex-1 flex-col items-center px-4 text-center">
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary bg-primary/5 font-mono text-base font-semibold text-primary">
         {number}
       </div>
@@ -57,7 +61,7 @@ function Step({ number, title, body }: StepProps) {
         {title}
       </h3>
       <p className="max-w-[220px] text-sm leading-relaxed text-muted-foreground">{body}</p>
-    </div>
+    </motion.div>
   )
 }
 
@@ -117,7 +121,7 @@ export const LandingPage = () => {
         {/* ── Features ── */}
         <section id="features" className="border-t border-border py-20 sm:py-24">
           <div className="mx-auto max-w-5xl px-4">
-            <div className="mx-auto mb-12 max-w-xl text-center">
+            <Reveal as="div" className="mx-auto mb-12 max-w-xl text-center">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 Built on one guarantee
               </h2>
@@ -125,9 +129,9 @@ export const LandingPage = () => {
                 Your plaintext never leaves your device, at any point in the
                 process.
               </p>
-            </div>
+            </Reveal>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <Reveal as="div" stagger={0.12} delay={0.1} className="grid gap-4 sm:grid-cols-2">
               <FeatureCard
                 lead
                 icon={<LockKey weight="regular" className="h-6 w-6 text-primary" />}
@@ -144,23 +148,23 @@ export const LandingPage = () => {
                 title="Tamper-evident by design"
                 body="AES-GCM authenticates every byte of ciphertext. Any modification to the encrypted file is detected and rejected before decryption, not after."
               />
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* ── How It Works ── */}
         <section id="how-it-works" className="border-t border-border py-20 sm:py-24">
           <div className="mx-auto max-w-3xl px-4">
-            <h2 className="mb-14 text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            <Reveal as="h2" className="mb-14 text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               How it works
-            </h2>
+            </Reveal>
 
-            <div className="relative flex flex-col items-start justify-center gap-10 md:flex-row md:gap-0">
+            <Reveal as="div" stagger={0.15} delay={0.1} className="relative flex flex-col items-start justify-center gap-10 md:flex-row md:gap-0">
               <div className="absolute left-[calc(16.7%+24px)] right-[calc(16.7%+24px)] top-6 hidden h-px bg-border md:block" aria-hidden="true" />
               <Step number="01" title="Connect" body="Sign in with Google and grant access limited to files CipherDrive creates." />
               <Step number="02" title="Encrypt" body="Pick a file, choose a password, and it's locked with AES-256-GCM before it leaves your browser." />
               <Step number="03" title="Sync" body="The encrypted file uploads to your own Google Drive. You hold the only key." />
-            </div>
+            </Reveal>
           </div>
         </section>
       </main>
