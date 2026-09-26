@@ -1,42 +1,60 @@
 import { LegalLayout } from '@/components/LegalLayout'
 
+const LAST_UPDATED = new Intl.DateTimeFormat(undefined, {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+}).format(new Date('2026-05-25'))
+
 export function TermsOfService() {
   return (
     <LegalLayout title="Terms of Service">
-      <p className="text-sm text-slate-400 italic mb-8">Last Updated: 25/05/2026</p>
+      <p className="text-sm text-muted-foreground">Last updated: {LAST_UPDATED}</p>
 
       <p className="text-base leading-relaxed">
-        By using CipherDrive, you agree to these Terms of Service.
+        By using CipherDrive, you agree to these terms.
       </p>
 
-      <h2 className="text-xl font-semibold text-slate-100 mt-10 mb-4">1. Acceptance of Risk (The Zero-Knowledge Clause)</h2>
-      <p className="text-base leading-relaxed mb-4">
-        CipherDrive is a client-side encryption tool. You acknowledge and agree that <strong className="text-rose-400 font-bold uppercase">we do not store your encryption passwords.</strong>
+      <h2 className="mt-10 mb-4 text-xl font-semibold text-foreground">1. No password recovery</h2>
+      <p className="mb-4 text-base leading-relaxed">
+        CipherDrive is a client-side encryption tool. We do not store your
+        encryption passwords, in any form, anywhere.
       </p>
-      <ul className="list-none space-y-2">
-        <li className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-4 text-rose-200">
-          <strong className="text-rose-400 font-bold">CRITICAL:</strong> If you forget or lose the password used to encrypt a file, that file is permanently unrecoverable. There is no "Forgot Password" mechanism. You assume 100% responsibility for securely managing your passwords.
-        </li>
-      </ul>
+      <div className="rounded-lg border border-destructive/25 bg-destructive/5 p-4 text-sm leading-relaxed text-foreground">
+        <strong className="text-destructive">This means:</strong> if you
+        forget the password used to encrypt a file, that file cannot be
+        decrypted by anyone, including us. There is no "forgot password"
+        flow and no backdoor. You are responsible for storing your
+        passwords securely, for example in a password manager.
+      </div>
 
-      <h2 className="text-xl font-semibold text-slate-100 mt-10 mb-4">2. Provided "As-Is"</h2>
+      <h2 className="mt-10 mb-4 text-xl font-semibold text-foreground">2. Provided as-is</h2>
       <p className="text-base leading-relaxed">
-        CipherDrive is provided on an "as-is" and "as available" basis without any warranties, express or implied. While we utilize industry-standard AES-256-GCM cryptography, we do not guarantee that the service will be entirely error-free or uninterrupted.
+        CipherDrive is provided "as is," without warranty of any kind. We use
+        AES-256-GCM encryption and follow current key-derivation guidance,
+        but we do not guarantee the service will be error-free or
+        uninterrupted.
       </p>
 
-      <h2 className="text-xl font-semibold text-slate-100 mt-10 mb-4">3. Limitation of Liability</h2>
+      <h2 className="mt-10 mb-4 text-xl font-semibold text-foreground">3. Limitation of liability</h2>
       <p className="text-base leading-relaxed">
-        In no event shall CipherDrive, its developers, or affiliates be liable for any data loss, file corruption, indirect, incidental, or consequential damages arising out of your use or inability to use the service. You are strongly advised to keep backups of your critical plaintext files before encrypting and uploading them.
+        CipherDrive, its developers, and affiliates are not liable for data
+        loss, file corruption, or any indirect or consequential damages
+        arising from your use of the service. Keep independent backups of
+        files you consider critical before encrypting and uploading them.
       </p>
 
-      <h2 className="text-xl font-semibold text-slate-100 mt-10 mb-4">4. User Responsibilities</h2>
+      <h2 className="mt-10 mb-4 text-xl font-semibold text-foreground">4. Acceptable use</h2>
       <p className="text-base leading-relaxed">
-        You agree not to use CipherDrive to encrypt or distribute illegal, malicious, or highly restricted content that violates Google Drive's terms of service.
+        You agree not to use CipherDrive to store or distribute illegal
+        content, or content that otherwise violates Google Drive's terms of
+        service.
       </p>
 
-      <h2 className="text-xl font-semibold text-slate-100 mt-10 mb-4">5. Changes to Terms</h2>
+      <h2 className="mt-10 mb-4 text-xl font-semibold text-foreground">5. Changes to these terms</h2>
       <p className="text-base leading-relaxed">
-        We reserve the right to modify these terms at any time. Continued use of the application constitutes acceptance of the new terms.
+        We may update these terms from time to time. Continuing to use
+        CipherDrive after a change means you accept the updated terms.
       </p>
     </LegalLayout>
   )

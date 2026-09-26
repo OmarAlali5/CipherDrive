@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 
 interface CipherRevealTextProps {
   text: string
@@ -9,58 +9,59 @@ interface CipherRevealTextProps {
 
 const CHARS = '!@#$%^&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
+/** Scrambles `text` into random glyphs, then resolves it letter by letter.
+ * The real text is always exposed to assistive tech via `aria-label`
+ * (the animated span is `aria-hidden`), and the whole effect is skipped
+ * under `prefers-reduced-motion`. */
 export const CipherRevealText = ({ text, className = '', delay = 0 }: CipherRevealTextProps) => {
-  const [displayText, setDisplayText] = useState(
-    text.replace(/[a-zA-Z0-9]/g, () => CHARS[Math.floor(Math.random() * CHARS.length)])
-  )
+  const [displayText, setDisplayText] = useState(text)
   const ref = useRef<HTMLSpanElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
-    if (!isInView) return
+    // Initial state already renders the real text, so reduced motion or
+    // being out of view simply means "never start scrambling."
+    if (!isInView || prefersReducedMotion) return
 
     let iteration = 0
-    let timeoutId: number
+    let intervalId: number | undefined
+    const step = Math.max(0.5, text.length / 30)
+
+    const scramble = () =>
+      text
+        .split('')
+        .map((char, index) => {
+          if (index < iteration) return text[index]
+          if (char === ' ') return ' '
+          return CHARS[Math.floor(Math.random() * CHARS.length)]
+        })
+        .join('')
 
     const startAnimation = () => {
-      const interval = window.setInterval(() => {
-        setDisplayText(() =>
-          text
-            .split('')
-            .map((char, index) => {
-              if (index < iteration) {
-                return text[index]
-              }
-              // Preserve spaces
-              if (char === ' ') return ' '
-              return CHARS[Math.floor(Math.random() * CHARS.length)]
-            })
-            .join('')
-        )
-
-        // Adjust speed by incrementing slightly based on text length to complete slower (e.g. ~1000ms)
-        const step = Math.max(0.5, text.length / 30)
-        if (iteration >= text.length) {
-          window.clearInterval(interval)
-        }
+      setDisplayText(scramble())
+      intervalId = window.setInterval(() => {
         iteration += step
-      }, 40) // ~40ms per frame
+        if (iteration >= text.length) {
+          setDisplayText(text)
+          window.clearInterval(intervalId)
+          return
+        }
+        setDisplayText(scramble())
+      }, 40)
     }
 
-    if (delay > 0) {
-      timeoutId = setTimeout(startAnimation, delay)
-    } else {
-      startAnimation()
-    }
+    const timeoutId = window.setTimeout(startAnimation, delay)
 
     return () => {
-      clearTimeout(timeoutId)
+      window.clearTimeout(timeoutId)
+      window.clearInterval(intervalId)
     }
-  }, [isInView, text, delay])
+  }, [isInView, text, delay, prefersReducedMotion])
 
   return (
-    <motion.span ref={ref} className={className}>
-      {displayText}
+    <motion.span ref={ref} className={className} aria-label={text}>
+      <span aria-hidden="true">{displayText}</span>
     </motion.span>
   )
 }

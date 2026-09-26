@@ -5,7 +5,7 @@
 
   ### *Don't trust us. Don't trust Google. Trust Math.*
 
-  A zero-knowledge, client-side encryption vault that turns your Google Drive into an impenetrable fortress, without ever touching a server.
+  A zero-knowledge, client-side encryption vault that locks your files with AES-256-GCM before they ever reach Google Drive, without a server in between.
 
   <br/>
 
@@ -46,9 +46,9 @@ The result? Even if Google, a hacker, or a government agency gains full access t
 | Feature | Description |
 |---|---|
 | **Zero-Knowledge Privacy** | Encryption keys are derived locally in the browser and **never leave your device**. Not even CipherDrive's own infrastructure (a static site!) can access them. |
-| **Military-Grade Cryptography** | Files are encrypted with **AES-256-GCM**, the same standard used by intelligence agencies and banks worldwide. Keys are derived using **PBKDF2** with **600,000 iterations** (exceeding OWASP recommendations). |
+| **Authenticated Encryption** | Files are encrypted with **AES-256-GCM**. Keys are derived using **PBKDF2-SHA256** with **600,000 iterations** (exceeding OWASP's 2023 minimum). |
 | **Direct-to-Drive Architecture** | There is **no middleman server**. Files stream directly from your browser to the Google Drive API using resumable uploads. Your storage limit is your Google Drive quota, nothing more, nothing less. |
-| **Premium Cyber-Aesthetic UI** | A stunning interface featuring **glassmorphism**, **magnetic UI interactions**, **magic gradient borders**, and smooth **Framer Motion** animations; because security doesn't have to be ugly. |
+| **Light & Dark Themes** | A calm, precise interface built on Radix UI primitives and IBM Plex typography, following your system theme by default with a manual override. |
 | **Resumable Uploads** | Large files are uploaded via the Google Drive **Resumable Upload** protocol, ensuring reliability even on unstable connections. |
 | **Versioned Binary Format** | Encrypted files are packaged with a self-describing binary header (`CDRV2`), enabling seamless forward-compatible decryption as the protocol evolves. |
 
@@ -168,15 +168,17 @@ The app will be available at **`http://localhost:5173`**.
 ### Build & Deploy
 
 ```bash
-# Build for production
+# Type-check and build for production
 npm run build
 
-# Preview with Wrangler (Cloudflare Workers)
+# Build, then serve the production build locally to verify it
 npm run preview
-
-# Deploy to Cloudflare Pages
-npm run deploy
 ```
+
+`dist/` is a static site — deploy it to any static host (Cloudflare
+Pages, Vercel, Netlify, GitHub Pages, etc.), setting the same
+`VITE_GOOGLE_CLIENT_ID` environment variable and adding the deployed
+origin to your OAuth client's authorized JavaScript origins.
 
 <br/>
 
@@ -184,27 +186,29 @@ npm run deploy
 
 ```
 CipherDrive/
-├── public/                      # Static assets (logo, favicon, animations)
+├── public/                      # Static assets (logo, favicon)
 ├── src/
-│   ├── components/              # Reusable UI components (shadcn/ui based)
+│   ├── components/              # UI components (shadcn/ui-style, Radix-based)
+│   │   ├── crypto/               # Encrypt/decrypt password dialogs, uploader
+│   │   ├── drive/                 # File list, delete confirmation
+│   │   └── ui/                    # Design-system primitives (button, dialog, theme toggle…)
 │   ├── core/
 │   │   ├── crypto.ts            # Cryptographic facade (encrypt, decrypt, package)
 │   │   └── driveApi.ts          # Google Drive API integration (resumable uploads)
 │   ├── lib/
-│   │   └── crypto/              # Crypto Abstraction Layer
-│   │       ├── kdf/             # Key Derivation Functions (PBKDF2)
-│   │       ├── engine.ts        # AES-GCM encryption engine
-│   │       └── format.ts        # Versioned binary format (CDRV1/CDRV2)
-│   ├── pages/
-│   │   └── LandingPage.tsx      # Main application page
+│   │   ├── crypto/               # Crypto Abstraction Layer
+│   │   │   ├── kdf/              # Key Derivation Functions (PBKDF2)
+│   │   │   └── format.ts         # Versioned binary format (CDRV1/CDRV2)
+│   │   └── theme.ts              # Light/dark/system theme resolution
+│   ├── pages/                    # Landing page, dashboard, legal, 404
 │   ├── store/
 │   │   ├── authStore.ts         # Authentication state (Zustand)
-│   │   └── fileStore.ts         # File management state (Zustand)
+│   │   ├── fileStore.ts         # File management state (Zustand)
+│   │   └── themeStore.ts        # Theme preference (Zustand)
 │   ├── types/                   # TypeScript type definitions
-│   ├── App.tsx                  # Root component
+│   ├── App.tsx                  # Root component & routes
 │   └── main.tsx                 # Application entry point
-├── vite.config.ts               # Vite + Cloudflare configuration
-├── wrangler.jsonc               # Cloudflare Pages deployment config
+├── vite.config.ts
 └── package.json
 ```
 

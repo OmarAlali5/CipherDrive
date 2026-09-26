@@ -86,9 +86,13 @@ export async function encryptData(
   const kdfConfig = getKdfConfigForVersion(CURRENT_VERSION);
   const key = await kdfDeriveKey(password, salt, kdfConfig);
 
-  // Encrypt the data — AES-GCM appends the 16-byte auth tag automatically
+  // Encrypt the data — AES-GCM appends the 16-byte auth tag automatically.
+  // The cast below is a TS lib typing gap, not a behavior change: lib.dom's
+  // BufferSource excludes SharedArrayBuffer-backed views, which a plain
+  // Uint8Array's type parameter can't rule out even though this one is
+  // always backed by a real, non-shared ArrayBuffer at runtime.
   const encryptedBuffer = await window.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: iv as any },
+    { name: 'AES-GCM', iv: iv as unknown as BufferSource },
     key,
     data,
   );
@@ -124,10 +128,11 @@ export async function decryptData(
 
   const key = await kdfDeriveKey(password, salt, resolvedConfig);
 
+  // Same TS lib typing gap as in encryptData() above — no behavior change.
   return window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: iv as any },
+    { name: 'AES-GCM', iv: iv as unknown as BufferSource },
     key,
-    encryptedData as any,
+    encryptedData as unknown as BufferSource,
   );
 }
 

@@ -5,12 +5,13 @@
  * into secure, user-friendly messages without leaking sensitive information.
  */
 
-export function getSecureErrorMessage(error: any): string {
+export function getSecureErrorMessage(error: unknown): string {
   if (!error) return 'An unexpected secure operation error occurred.';
 
-  const message = (error.message || error.toString()).toLowerCase();
-  const name = error.name;
-  const status = error.status;
+  const details = error as { message?: unknown; name?: unknown; status?: unknown };
+  const message = String(details.message ?? error).toLowerCase();
+  const name = details.name;
+  const status = details.status;
 
   // 1. Quota or Size limit
   if (message.includes('quota') || message.includes('size')) {
