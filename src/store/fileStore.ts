@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { EncryptedFile, DownloadProgress, ProcessState } from '@/types'
-import { listFilesFromDrive, createFolder, deleteFileFromDrive, type DriveFileMetadata } from '@/core/driveApi'
+import { listFilesFromDrive, createFolder, deleteFileFromDrive, isUnauthorizedError, type DriveFileMetadata } from '@/core/driveApi'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 
@@ -51,9 +51,9 @@ export const useFileStore = create<FileState>((set, get) => ({
       set((state) => ({
         files: state.files.filter((f) => f.id !== id),
       }))
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to delete file:', error)
-      if (error.name === 'DriveApiError' && error.status === 401) {
+      if (isUnauthorizedError(error)) {
         useAuthStore.getState().logout()
         toast.error('Session expired, please log in again.')
       }
@@ -85,9 +85,9 @@ export const useFileStore = create<FileState>((set, get) => ({
       })
       
       set({ files: formattedFiles })
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to fetch files from Google Drive:', error)
-      if (error.name === 'DriveApiError' && error.status === 401) {
+      if (isUnauthorizedError(error)) {
         useAuthStore.getState().logout()
         toast.error('Session expired, please log in again.')
       } else {
@@ -103,14 +103,15 @@ export const useFileStore = create<FileState>((set, get) => ({
       await createFolder(name, accessToken, currentFolderId)
       await fetchFiles(accessToken)
       toast.success('Folder created successfully!')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to create folder:', error)
-      if (error.name === 'DriveApiError' && error.status === 401) {
+      if (isUnauthorizedError(error)) {
         useAuthStore.getState().logout()
         toast.error('Session expired, please log in again.')
       } else {
         toast.error('Failed to create folder.')
       }
+      throw error // Re-throw so the dialog can stay open with the typed name
     }
   },
   navigateToFolder: (id: string, name: string) =>

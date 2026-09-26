@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useId, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -10,184 +10,169 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { LockKey, Eye, EyeClosed, CircleNotch, Warning, CheckCircle, Circle } from '@phosphor-icons/react'
+import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter'
+import { formatFileSize } from '@/lib/format'
+import { MIN_PASSWORD_LENGTH } from '@/lib/passwordStrength'
+import {
+  LockKey,
+  Eye,
+  EyeClosed,
+  CircleNotch,
+  File as FileIcon,
+  Info,
+} from '@phosphor-icons/react'
 
 interface PasswordDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  title: string
-  description: string
+  fileName: string
+  fileSize: number
   confirmLabel: string
   onSubmit: (password: string) => void
   isLoading?: boolean
 }
 
-// Password strength criteria definitions
-const CRITERIA = [
-  {
-    id: 'length',
-    label: 'At least 8 characters',
-    regex: /.{8,}/,
-  },
-  {
-    id: 'uppercase',
-    label: 'At least one uppercase letter',
-    regex: /[A-Z]/,
-  },
-  {
-    id: 'number',
-    label: 'At least one number',
-    regex: /[0-9]/,
-  },
-  {
-    id: 'special',
-    label: 'At least one special character',
-    regex: /[!@#$%^&*(),.?":{}|<>]/,
-  },
-] as const
-
 export const PasswordDialog = ({
   open,
   onOpenChange,
-  title,
-  description,
+  fileName,
+  fileSize,
   confirmLabel,
   onSubmit,
   isLoading = false,
 }: PasswordDialogProps) => {
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [touchedConfirm, setTouchedConfirm] = useState(false)
+  const confirmId = useId()
 
-  // Derive which criteria pass in real-time
-  const criteriaStatus = useMemo(
-    () => CRITERIA.map((c) => ({ ...c, passed: c.regex.test(password) })),
-    [password],
-  )
-
-  const isPasswordValid = criteriaStatus.every((c) => c.passed)
+  const meetsMinimum = password.length >= MIN_PASSWORD_LENGTH
+  const passwordsMatch = password.length > 0 && password === confirmPassword
+  const showMismatch = touchedConfirm && confirmPassword.length > 0 && !passwordsMatch
+  const canSubmit = meetsMinimum && passwordsMatch && !isLoading
 
   const handleSubmit = () => {
-    if (isPasswordValid && !isLoading) {
+    if (canSubmit) {
       onSubmit(password)
-      setPassword('')
     }
   }
 
-  const handleOpenChange = (open: boolean) => {
-    if (!isLoading) {
-      onOpenChange(open)
-      if (!open) setPassword('')
+  const handleOpenChange = (next: boolean) => {
+    if (isLoading) return
+    if (!next) {
+      setPassword('')
+      setConfirmPassword('')
+      setShowPassword(false)
+      setTouchedConfirm(false)
     }
+    onOpenChange(next)
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md border-(--border)/50 bg-(--background)/95 backdrop-blur-md shadow-2xl">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2.5 text-xl tracking-tight">
-            <div className="rounded-lg bg-(--primary)/10 p-1.5">
-              <LockKey weight="duotone" className="h-5 w-5 text-(--primary)" />
+          <DialogTitle className="flex items-center gap-2.5">
+            <div className="rounded-md bg-primary/10 p-1.5">
+              <LockKey weight="regular" className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
-            {title}
+            Encrypt &amp; upload
           </DialogTitle>
-          <DialogDescription className="text-base text-(--muted-foreground) mt-2 text-balance">
-            {description}
+          <DialogDescription>
+            Choose a password. It stays in your browser and is used to derive
+            the AES-256-GCM key. Nothing is sent anywhere until the file is
+            already encrypted.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-5">
-          {/* Critical warning */}
-          <Alert variant="warning" className="bg-amber-500/10">
-            <Warning weight="duotone" className="h-4 w-4" />
-            <AlertTitle>Critical Warning</AlertTitle>
-            <AlertDescription>
-              CRITICAL: Your password is NOT stored anywhere on our servers. If you
-              forget it, your file CANNOT be recovered by anyone. Please store it securely.
-            </AlertDescription>
-          </Alert>
+        <div className="flex items-center gap-3 rounded-md border border-border bg-muted/40 px-3 py-2.5">
+          <FileIcon weight="regular" className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">{fileName}</p>
+          </div>
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">
+            {formatFileSize(fileSize)}
+          </span>
+        </div>
 
-          {/* Password input */}
-          <div className="space-y-2.5">
-            <Label htmlFor="encrypt-password" className="text-sm font-medium">
-              Encryption Password
-            </Label>
-            <div className="relative group">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="encrypt-password">Password</Label>
+            <div className="relative">
               <Input
                 id="encrypt-password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your encryption password"
+                placeholder="At least 8 characters…"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="pr-10 h-11 bg-(--muted)/20 border-(--border)/50 focus-visible:ring-(--primary)/30 transition-all duration-200"
+                autoComplete="new-password"
+                className="pr-10"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && isPasswordValid && !isLoading) {
-                    handleSubmit()
-                  }
+                  if (e.key === 'Enter' && canSubmit) handleSubmit()
                 }}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-(--muted-foreground)/70 hover:text-(--foreground) transition-colors p-1 rounded-md hover:bg-(--muted)/50"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
                 {showPassword ? (
-                  <EyeClosed weight="duotone" className="h-4 w-4" />
+                  <EyeClosed weight="regular" className="h-4 w-4" aria-hidden="true" />
                 ) : (
-                  <Eye weight="duotone" className="h-4 w-4" />
+                  <Eye weight="regular" className="h-4 w-4" aria-hidden="true" />
                 )}
               </button>
             </div>
+            <PasswordStrengthMeter password={password} />
           </div>
 
-          {/* Password strength checklist */}
-          <div className="rounded-lg border border-(--border)/40 bg-(--muted)/10 px-4 py-3 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-widest text-(--muted-foreground)/60 mb-1">
-              Password Requirements
+          <div className="space-y-2">
+            <Label htmlFor={confirmId}>Confirm password</Label>
+            <Input
+              id={confirmId}
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Re-enter the same password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              onBlur={() => setTouchedConfirm(true)}
+              disabled={isLoading}
+              autoComplete="new-password"
+              aria-invalid={showMismatch}
+              aria-describedby={showMismatch ? `${confirmId}-error` : undefined}
+              className={showMismatch ? 'border-destructive focus-visible:ring-destructive' : undefined}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && canSubmit) handleSubmit()
+              }}
+            />
+            {showMismatch && (
+              <p id={`${confirmId}-error`} className="text-xs text-destructive">
+                Passwords don&rsquo;t match yet.
+              </p>
+            )}
+          </div>
+
+          <div className="flex gap-2.5 rounded-md border border-warning/30 bg-warning-bg p-3">
+            <Info weight="regular" className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+            <p className="text-xs leading-relaxed text-warning-foreground">
+              This password is never stored, transmitted, or logged. If you
+              lose it, this file cannot be decrypted by anyone, including us.
             </p>
-            {criteriaStatus.map((criterion) => (
-              <div
-                key={criterion.id}
-                className="flex items-center gap-2.5"
-              >
-                {criterion.passed ? (
-                  <CheckCircle weight="duotone" className="h-4 w-4 shrink-0 text-emerald-500 transition-colors duration-200" />
-                ) : (
-                  <Circle weight="duotone" className="h-4 w-4 shrink-0 text-slate-500 transition-colors duration-200" />
-                )}
-                <span
-                  className={`text-sm transition-colors duration-200 ${
-                    criterion.passed
-                      ? 'text-emerald-400'
-                      : 'text-slate-500'
-                  }`}
-                >
-                  {criterion.label}
-                </span>
-              </div>
-            ))}
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={() => handleOpenChange(false)}
-            disabled={isLoading}
-            className="border-(--border)/50 hover:bg-(--muted)/50"
-          >
+        <DialogFooter>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!isPasswordValid || isLoading}
-            className="min-w-[140px] shadow-sm"
-          >
+          <Button onClick={handleSubmit} disabled={!canSubmit} className="min-w-[150px]">
             {isLoading ? (
               <>
-                <CircleNotch weight="duotone" className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                <CircleNotch weight="bold" className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Processing…
               </>
             ) : (
               confirmLabel

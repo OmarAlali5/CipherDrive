@@ -1,0 +1,17 @@
+/**
+ * Self-hosted fonts (Direction B: "Cryptographic Instrument").
+ *
+ * Bundled locally via @fontsource so no request ever leaves 'self' —
+ * this is what lets index.html drop the Google Fonts stylesheet entirely
+ * and keep a strict Content-Security-Policy with no font-src exception.
+ *
+ * UI / display: IBM Plex Sans (400/500/600/700)
+ * Data / mono:  IBM Plex Mono (400/500/600)
+ */
+@import '@fontsource/ibm-plex-sans/latin-400.css';
+@import '@fontsource/ibm-plex-sans/latin-500.css';
+@import '@fontsource/ibm-plex-sans/latin-600.css';
+@import '@fontsource/ibm-plex-sans/latin-700.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+@import '@fontsource/ibm-plex-mono/latin-600.css';

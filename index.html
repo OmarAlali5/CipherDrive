@@ -1,11 +1,31 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
-    <base href="/" /> <meta charset="UTF-8" />
+    <base href="/" />
+    <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://www.googleapis.com;">
+    <meta
+      name="description"
+      content="CipherDrive encrypts your files with AES-256-GCM inside your browser before they ever reach Google Drive. The password never leaves your device, so no one but you can read what you store."
+    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c1016" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://accounts.google.com 'sha256-cpzzT43wNACifD51d9dGFD6oX4eXm+bMgTr5znMfv4M='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.googleusercontent.com; connect-src 'self' https://www.googleapis.com; frame-src https://accounts.google.com;"
+    />
     <title>CipherDrive</title>
+    <!--
+      Applies the saved theme preference before first paint, so a
+      returning visitor never sees a flash of the wrong theme. It only
+      ever reads localStorage and prefers-color-scheme, and it mirrors
+      exactly what src/lib/theme.ts does at runtime. The inline script
+      is intentionally kept out of script-src's blanket allowance and
+      is instead allow-listed by its own SHA-256 hash above, so the CSP
+      does not need 'unsafe-inline' for scripts.
+    -->
+    <script>(function(){try{var s=localStorage.getItem("cipherdrive-theme");var d=(s==="light"||s==="dark")?s:(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(s==="light"||s==="dark"){document.documentElement.setAttribute("data-theme",s);}document.documentElement.style.colorScheme=d;}catch(e){}})();</script>
   </head>
   <body>
     <div id="root"></div>

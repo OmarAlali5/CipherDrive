@@ -20,6 +20,16 @@ export class DriveApiError extends Error {
   }
 }
 
+/** Type guard so callers can narrow a caught `unknown` without `any`. */
+export function isDriveApiError(error: unknown): error is DriveApiError {
+  return error instanceof DriveApiError;
+}
+
+/** True when the error represents an expired/invalid Google session. */
+export function isUnauthorizedError(error: unknown): boolean {
+  return isDriveApiError(error) && error.status === 401;
+}
+
 const handleApiError = async (response: Response, context: string) => {
   if (response.status === 401) {
     throw new DriveApiError('Unauthorized', 401);
@@ -90,7 +100,7 @@ export async function uploadFileToDrive(
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           resolve(JSON.parse(xhr.responseText) as DriveFileMetadata);
-        } catch (e) {
+        } catch {
           resolve({ id: 'unknown', name: metadata.name, mimeType: 'application/octet-stream' });
         }
       } else {

@@ -6,31 +6,26 @@ import { DeleteConfirmationDialog } from '@/components/drive/DeleteConfirmationD
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { File as FileIcon, DownloadSimple, Shield, LockKey, CircleNotch, CheckCircle, Trash, Folder, CaretRight, FolderPlus } from '@phosphor-icons/react'
+import { File as FileIcon, DownloadSimple, LockKey, CircleNotch, CheckCircle, Trash, Folder, CaretRight, FolderPlus, Shield } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { downloadFileFromDrive } from '@/core/driveApi'
 import { unpackageEncryptedFile, decryptData } from '@/core/crypto'
+import { formatFileSize, formatDate } from '@/lib/format'
+import { getSecureErrorMessage } from '@/lib/errors/errorHandler'
+import { cn } from '@/lib/utils'
 
-const formatSize = (bytes: number) => {
-  const units = ['B', 'KB', 'MB', 'GB']
-  let size = bytes
-  let unitIndex = 0
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024
-    unitIndex++
-  }
-  return `${size.toFixed(1)} ${units[unitIndex]}`
-}
-
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+function RowSkeleton() {
+  return (
+    <div className="flex items-center gap-4 px-5 py-4" aria-hidden="true">
+      <div className="h-9 w-9 shrink-0 animate-pulse rounded-lg bg-muted" />
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="h-3.5 w-1/3 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-1/5 animate-pulse rounded bg-muted" />
+      </div>
+    </div>
+  )
 }
 
 export const FileList = () => {
@@ -56,14 +51,15 @@ export const FileList = () => {
     originalName: string
   } | null>(null)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
-  
+  const [decryptError, setDecryptError] = useState<string | null>(null)
+
   // Folder Creation State
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [isCreatingFolder, setIsCreatingFolder] = useState(false)
 
   // Delete State
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; isFolder: boolean } | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -84,8 +80,7 @@ export const FileList = () => {
     }
 
     const fileToProcess = downloadFile
-    setShowPasswordDialog(false)
-    setDownloadFile(null)
+    setDecryptError(null)
 
     ;(async () => {
       setIsProcessing(true)
@@ -101,7 +96,7 @@ export const FileList = () => {
         // 1. Download file from Google Drive
         const encryptedBuffer = await downloadFileFromDrive(fileToProcess.id, accessToken)
         setProgress(50)
-        
+
         setDownloadProgress({
           fileName: fileToProcess.originalName,
           progress: 50,
@@ -133,24 +128,21 @@ export const FileList = () => {
           status: 'done',
         })
 
-        toast.success('File decrypted and downloaded successfully!', {
+        toast.success('File decrypted and downloaded', {
           description: fileToProcess.originalName,
-          icon: <CheckCircle weight="duotone" className="h-4 w-4 text-green-500" />
+          icon: <CheckCircle weight="regular" className="h-4 w-4 text-primary" />
         })
-      } catch (error: any) {
+        setShowPasswordDialog(false)
+        setDownloadFile(null)
+      } catch (error) {
         console.error('Decryption/Download Error:', error)
-        toast.error('Decryption failed: Incorrect password or corrupted file.')
-        setDownloadProgress({
-          fileName: fileToProcess.originalName,
-          progress: 0,
-          status: 'error',
-        })
+        // Keep the dialog open so a mistyped password can be retried
+        // without restarting the whole flow.
+        setDecryptError(getSecureErrorMessage(error))
+        setDownloadProgress(null)
       } finally {
-        setTimeout(() => {
-          setIsProcessing(false)
-          setProgress(0)
-          setDownloadProgress(null)
-        }, 3000)
+        setIsProcessing(false)
+        setProgress(0)
       }
     })()
   }
@@ -161,20 +153,27 @@ export const FileList = () => {
     originalName: string,
   ) => {
     setDownloadFile({ id, name, originalName })
+    setDecryptError(null)
     setShowPasswordDialog(true)
   }
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim() || !accessToken) return
     setIsCreatingFolder(true)
-    await createFolderAction(newFolderName.trim(), accessToken)
-    setNewFolderName('')
-    setShowNewFolderDialog(false)
-    setIsCreatingFolder(false)
+    try {
+      await createFolderAction(newFolderName.trim(), accessToken)
+      setNewFolderName('')
+      setShowNewFolderDialog(false)
+    } catch {
+      // createFolderAction already surfaces a toast; keep the dialog
+      // open with the typed name so the user doesn't have to retype it.
+    } finally {
+      setIsCreatingFolder(false)
+    }
   }
 
-  const handleDeleteClick = (id: string, name: string) => {
-    setDeleteTarget({ id, name })
+  const handleDeleteClick = (id: string, name: string, isFolder: boolean) => {
+    setDeleteTarget({ id, name, isFolder })
     setShowDeleteDialog(true)
   }
 
@@ -187,143 +186,132 @@ export const FileList = () => {
         description: deleteTarget.name,
       })
       setShowDeleteDialog(false)
-    } catch (error) {
+      setDeleteTarget(null)
+    } catch {
       toast.error('Failed to delete', {
         description: 'An error occurred while deleting from Google Drive.',
       })
     } finally {
       setIsDeleting(false)
-      setDeleteTarget(null)
     }
   }
 
-  if (isLoadingFiles) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed border-slate-800 bg-[#020617]/40">
-        <CircleNotch weight="duotone" className="h-10 w-10 text-emerald-400 animate-spin mb-6" />
-        <p className="text-xl font-semibold text-white tracking-tight">
-          Syncing Vault
-        </p>
-        <p className="text-base text-slate-500 mt-2 max-w-sm">
-          Securely fetching your encrypted files from Google Drive...
-        </p>
+  const toolbar = (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-2 overflow-x-auto text-sm text-muted-foreground">
+        <button onClick={navigateHome} className="shrink-0 rounded font-medium transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          Home
+        </button>
+        {breadcrumbs.map((b, i) => (
+          <React.Fragment key={b.id}>
+            <CaretRight weight="bold" className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" aria-hidden="true" />
+            <button
+              onClick={() => navigateToBreadcrumb(i)}
+              className="max-w-[150px] shrink-0 truncate rounded font-medium transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {b.name}
+            </button>
+          </React.Fragment>
+        ))}
       </div>
-    )
-  }
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowNewFolderDialog(true)}
+        className="shrink-0"
+      >
+        <FolderPlus weight="regular" className="h-4 w-4" aria-hidden="true" />
+        New folder
+      </Button>
+    </div>
+  )
 
   return (
     <div className="space-y-4">
-      {/* Breadcrumbs & Folder Action */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-slate-500 overflow-x-auto pb-2">
-          <button onClick={navigateHome} className="hover:text-white font-medium transition-colors shrink-0">
-            Home
-          </button>
-          {breadcrumbs.map((b, i) => (
-            <React.Fragment key={b.id}>
-              <CaretRight weight="duotone" className="h-4 w-4 shrink-0 text-slate-700" />
-              <button
-                onClick={() => navigateToBreadcrumb(i)}
-                className="hover:text-white font-medium transition-colors shrink-0 truncate max-w-[150px]"
-              >
-                {b.name}
-              </button>
-            </React.Fragment>
-          ))}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowNewFolderDialog(true)}
-          className="shrink-0 border-slate-700 bg-slate-900/60 text-slate-300 hover:border-emerald-500/50 hover:bg-slate-800 hover:text-white transition-all"
-        >
-          <FolderPlus weight="duotone" className="h-4 w-4 mr-2" />
-          New Folder
-        </Button>
-      </div>
+      {toolbar}
 
-      {files.length === 0 ? (
+      {isLoadingFiles ? (
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <div className="divide-y divide-border">
+            <RowSkeleton />
+            <RowSkeleton />
+            <RowSkeleton />
+          </div>
+        </div>
+      ) : files.length === 0 ? (
         /* ─── Empty State ─── */
-        <div
-          className="flex flex-col items-center justify-center py-20 text-center rounded-xl border-2 border-dashed border-slate-800 bg-slate-900/30"
-          style={{
-            animation: 'subtle-border-pulse 3s ease-in-out infinite',
-          }}
-        >
-          <div className="relative mb-6">
-            <div
-              className="absolute -inset-3 rounded-full opacity-50"
-              style={{
-                background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)',
-              }}
-            />
-            <div className="relative rounded-full bg-[#020617] p-6 border border-slate-800 text-slate-600">
-              <Shield weight="duotone" className="h-12 w-12 text-emerald-500" />
-            </div>
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-card/50 py-16 text-center">
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+            <Shield weight="regular" className="h-6 w-6 text-primary" aria-hidden="true" />
           </div>
-          <p className="text-xl font-semibold text-white tracking-tight">
-            {currentFolderId ? 'This folder is empty' : 'Vault is empty'}
+          <p className="text-lg font-semibold tracking-tight text-foreground">
+            {currentFolderId ? 'This folder is empty' : 'Your vault is empty'}
           </p>
-          <p className="text-base text-slate-500 mt-2 max-w-sm">
-            Use the drag and drop area above to upload your first file, or create a new folder.
+          <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+            Use the upload area above to encrypt your first file, or create a
+            folder to organize your vault.
           </p>
-          <div className="mt-8">
-            <Button
-              onClick={() => setShowNewFolderDialog(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/30"
-            >
-              <FolderPlus weight="duotone" className="h-4 w-4 mr-2" />
-              Create First Folder
-            </Button>
-          </div>
+          <Button onClick={() => setShowNewFolderDialog(true)} variant="outline" className="mt-6">
+            <FolderPlus weight="regular" className="h-4 w-4" aria-hidden="true" />
+            New folder
+          </Button>
         </div>
       ) : (
         /* ─── File List ─── */
-        <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
-          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-800/60 bg-[#020617]/40">
-            <LockKey weight="duotone" className="h-4 w-4 text-emerald-400" />
-            <span className="text-sm font-semibold text-white">Encrypted Files</span>
-            <span className="ml-auto inline-flex items-center justify-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-mono font-semibold text-emerald-400">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <div className="flex items-center gap-2.5 border-b border-border px-5 py-3.5">
+            <LockKey weight="regular" className="h-4 w-4 text-primary" aria-hidden="true" />
+            <span className="text-sm font-medium text-foreground">Encrypted files</span>
+            <span className="ml-auto rounded-full bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
               {files.length}
             </span>
           </div>
-          <div className="divide-y divide-slate-800/50">
+          <ul className="divide-y divide-border">
             {files.map((file) => (
-              <div
+              <li
                 key={file.id}
-                className="group flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 hover:bg-slate-800/40 transition-colors duration-200"
+                className="group flex flex-col gap-3 px-5 py-3.5 transition-colors hover:bg-accent/50 focus-within:bg-accent/50 sm:flex-row sm:items-center"
               >
-                <div
-                  className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer"
-                  onClick={() => file.isFolder && navigateToFolder(file.id, file.name)}
-                >
-                  <div className="rounded-lg bg-emerald-500/10 p-2.5 shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    {file.isFolder ? (
-                      <Folder weight="duotone" className="h-5 w-5 text-emerald-400" />
-                    ) : (
-                      <FileIcon weight="duotone" className="h-5 w-5 text-emerald-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate text-white group-hover:text-emerald-300 transition-colors">
-                      {file.name}
-                    </p>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                      {!file.isFolder && (
-                        <span className="font-mono font-medium bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">
-                          {formatSize(file.size)}
-                        </span>
-                      )}
-                      <span>{formatDate(file.uploadedAt)}</span>
+                {file.isFolder ? (
+                  <button
+                    type="button"
+                    onClick={() => navigateToFolder(file.id, file.name)}
+                    className="flex min-w-0 flex-1 items-center gap-4 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <div className="shrink-0 rounded-lg bg-primary/10 p-2.5">
+                      <Folder weight="regular" className="h-5 w-5 text-primary" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
+                      <p className="mt-0.5 font-mono-tabular text-xs text-muted-foreground">
+                        {formatDate(file.uploadedAt)}
+                      </p>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="flex min-w-0 flex-1 items-center gap-4">
+                    <div className="shrink-0 rounded-lg bg-primary/10 p-2.5">
+                      <FileIcon weight="regular" className="h-5 w-5 text-primary" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">{file.originalName}</p>
+                      <div className="mt-0.5 flex items-center gap-2.5 font-mono-tabular text-xs text-muted-foreground">
+                        <span className="rounded bg-muted px-1.5 py-0.5">{formatFileSize(file.size)}</span>
+                        <span>{formatDate(file.uploadedAt)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+                )}
+                <div
+                  className={cn(
+                    'flex shrink-0 items-center gap-1 self-end transition-opacity sm:self-auto',
+                    'sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100',
+                  )}
+                >
                   {file.isFolder ? (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-slate-300 hover:text-white hover:bg-slate-800"
                       onClick={() => navigateToFolder(file.id, file.name)}
                     >
                       Open
@@ -332,7 +320,6 @@ export const FileList = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-slate-300 hover:text-emerald-300 hover:bg-emerald-500/10"
                       onClick={() =>
                         handleDownloadClick(
                           file.id,
@@ -341,46 +328,46 @@ export const FileList = () => {
                         )
                       }
                     >
-                      <DownloadSimple weight="duotone" className="h-4 w-4 mr-1.5" />
+                      <DownloadSimple weight="regular" className="h-4 w-4" aria-hidden="true" />
                       Decrypt
                     </Button>
                   )}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                    onClick={() => handleDeleteClick(file.id, file.name)}
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => handleDeleteClick(file.id, file.isFolder ? file.name : file.originalName, !!file.isFolder)}
+                    aria-label={`Delete ${file.isFolder ? file.name : file.originalName}`}
                   >
-                    <Trash weight="duotone" className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
+                    <Trash weight="regular" className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
 
       {/* Download Progress */}
-      {isProcessing && (
-        <div className="mt-4 space-y-3 rounded-xl bg-[#020617]/80 backdrop-blur-md p-4 border border-slate-800">
+      {isProcessing && downloadProgress && (
+        <div className="space-y-3 rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-4 text-sm">
             <div className="flex items-center gap-3 truncate">
-              <div className="bg-emerald-500/10 p-2 rounded-lg">
-                <DownloadSimple weight="duotone" className="h-5 w-5 text-emerald-400" />
+              <div className="rounded-lg bg-primary/10 p-2">
+                <DownloadSimple weight="regular" className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
-              <div className="flex flex-col items-start truncate">
-                <span className="font-medium truncate text-white">{downloadProgress?.fileName ?? 'Processing file...'}</span>
-                <span className="text-xs text-slate-500 font-mono">
-                  {progress < 60 ? 'Downloading...' : 'Decrypting...'}
+              <div className="flex min-w-0 flex-col items-start">
+                <span className="truncate font-medium text-foreground">{downloadProgress.fileName}</span>
+                <span className="font-mono text-xs text-muted-foreground" aria-live="polite">
+                  {progress < 60 ? 'Downloading…' : 'Decrypting…'}
                 </span>
               </div>
             </div>
-            <CircleNotch weight="duotone" className="h-5 w-5 text-emerald-400 animate-spin shrink-0" />
+            <CircleNotch weight="bold" className="h-5 w-5 shrink-0 animate-spin text-primary" aria-hidden="true" />
           </div>
           <div className="space-y-1.5">
-            <Progress value={progress} className="h-2 w-full" />
-            <div className="flex justify-between text-xs font-mono text-slate-500">
+            <Progress value={progress} />
+            <div className="flex justify-between font-mono-tabular text-xs text-muted-foreground">
               <span>{progress}%</span>
               <span>{progress === 100 ? 'Complete' : 'Processing'}</span>
             </div>
@@ -389,15 +376,17 @@ export const FileList = () => {
       )}
 
       {/* New Folder Dialog */}
-      <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
+      <Dialog open={showNewFolderDialog} onOpenChange={(open) => !isCreatingFolder && setShowNewFolderDialog(open)}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create New Folder</DialogTitle>
+            <DialogTitle>Create new folder</DialogTitle>
             <DialogDescription>
-              Folder names are stored in plaintext for easy navigation.
+              Folder names are stored as plain text on Google Drive for
+              navigation. They are not encrypted.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="space-y-2">
+            <Label htmlFor="folderName">Folder name</Label>
             <Input
               id="folderName"
               placeholder="e.g. Invoices 2026"
@@ -417,8 +406,8 @@ export const FileList = () => {
               Cancel
             </Button>
             <Button onClick={handleCreateFolder} disabled={!newFolderName.trim() || isCreatingFolder}>
-              {isCreatingFolder && <CircleNotch weight="duotone" className="mr-2 h-4 w-4 animate-spin" />}
-              Create Folder
+              {isCreatingFolder && <CircleNotch weight="bold" className="h-4 w-4 animate-spin" aria-hidden="true" />}
+              Create folder
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -427,11 +416,18 @@ export const FileList = () => {
       <DecryptDialog
         open={showPasswordDialog}
         onOpenChange={(open) => {
-          setShowPasswordDialog(open)
-          if (!open) setDownloadFile(null)
+          if (!isProcessing) {
+            setShowPasswordDialog(open)
+            if (!open) {
+              setDownloadFile(null)
+              setDecryptError(null)
+            }
+          }
         }}
-        description={`Enter the password you originally used to encrypt "${downloadFile?.originalName ?? ''}" to unlock and download it.`}
+        fileName={downloadFile?.originalName ?? ''}
         onSubmit={handleDecryptAndDownload}
+        isLoading={isProcessing}
+        errorMessage={decryptError}
       />
 
       <DeleteConfirmationDialog
@@ -443,6 +439,7 @@ export const FileList = () => {
           }
         }}
         itemName={deleteTarget?.name ?? ''}
+        isFolder={deleteTarget?.isFolder}
         onConfirm={handleConfirmDelete}
         isLoading={isDeleting}
       />
