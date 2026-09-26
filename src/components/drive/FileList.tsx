@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useFileStore } from '@/store/fileStore'
 import { useAuthStore } from '@/store/authStore'
 import { DecryptDialog } from '@/components/crypto/DecryptDialog'
@@ -14,6 +15,7 @@ import { downloadFileFromDrive } from '@/core/driveApi'
 import { unpackageEncryptedFile, decryptData } from '@/core/crypto'
 import { formatFileSize, formatDate } from '@/lib/format'
 import { getSecureErrorMessage } from '@/lib/errors/errorHandler'
+import { listItem } from '@/lib/motionVariants'
 import { cn } from '@/lib/utils'
 
 function RowSkeleton() {
@@ -44,6 +46,7 @@ export const FileList = () => {
     navigateToBreadcrumb,
   } = useFileStore()
   const { accessToken } = useAuthStore()
+  const prefersReducedMotion = useReducedMotion()
 
   const [downloadFile, setDownloadFile] = useState<{
     id: string
@@ -230,7 +233,12 @@ export const FileList = () => {
     <div className="space-y-4">
       {toolbar}
 
-      {isLoadingFiles ? (
+      {/* Skeletons only on the very first fetch. fetchFiles() also runs
+          right after every successful upload to re-sync with Drive —
+          gating this on `files.length === 0` keeps that refresh from
+          wiping the list (and the new row's entrance animation) every
+          time a file is added. */}
+      {isLoadingFiles && files.length === 0 ? (
         <div className="overflow-hidden rounded-lg border border-border bg-card">
           <div className="divide-y divide-border">
             <RowSkeleton />
@@ -267,9 +275,14 @@ export const FileList = () => {
             </span>
           </div>
           <ul className="divide-y divide-border">
-            {files.map((file) => (
-              <li
+            <AnimatePresence initial={false}>
+              {files.map((file) => (
+              <motion.li
                 key={file.id}
+                layout={!prefersReducedMotion}
+                {...(!prefersReducedMotion
+                  ? { variants: listItem, initial: 'hidden', animate: 'visible', exit: 'exit' }
+                  : {})}
                 className="group flex flex-col gap-3 px-5 py-3.5 transition-colors hover:bg-accent/50 focus-within:bg-accent/50 sm:flex-row sm:items-center"
               >
                 {file.isFolder ? (
@@ -342,8 +355,9 @@ export const FileList = () => {
                     <Trash weight="regular" className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
-              </li>
-            ))}
+              </motion.li>
+              ))}
+            </AnimatePresence>
           </ul>
         </div>
       )}
